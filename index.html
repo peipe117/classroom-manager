@@ -1,14 +1,1960 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/classroom-manager/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>classroom-manager</title>
-    <script type="module" crossorigin src="/classroom-manager/assets/index-DRDmQUZR.js"></script>
-    <link rel="stylesheet" crossorigin href="/classroom-manager/assets/index-BiYgDfw_.css">
-  </head>
-  <body>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>課堂管理神器</title>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 Babel 以在瀏覽器中編譯 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- 設定 ES Modules 載入映射 (Import Map) -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react"
+        }
+    }
+    </script>
+</head>
+<body class="bg-orange-50 antialiased overflow-x-hidden">
+    <!-- React 應用程式掛載點 -->
     <div id="root"></div>
-  </body>
+
+    <!-- 主要應用程式邏輯 -->
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { Plus, Minus, UserPlus, Trash2, Users, Crown, RotateCcw, Settings, X, Check, Volume2, VolumeX, Pencil, Save, Gift, PartyPopper, HelpCircle, CloudRain, Zap, Sun as SunIcon, Cloud, Wind, FileText, User, Globe, Grid, Dices, Disc, Timer, Shuffle, MonitorPlay, Bell, Rocket, Sunrise, Armchair, LayoutGrid, List, Type, AlertTriangle, Mic, MicOff, StopCircle, Play, FlaskConical, Cookie, ClipboardList, Shirt, Download } from 'lucide-react';
+
+        // 介面翻譯資料庫
+        const TRANSLATIONS = {
+          'zh-TW': {
+            defaultTitle: '課堂管理神器',
+            defaultSubtitle: '快樂學中文，集點換獎勵！',
+            rankInfo: '等級說明',
+            ranks: {
+              seed: '小小種子',
+              sprout: '發芽小草',
+              bonsai: '雅緻盆景',
+              flower_pink: '粉紅花語',
+              flower_gold: '金黃花語',
+              flower_purple: '夢幻花語',
+              garden: '傳說花園'
+            },
+            studentRanks: {
+              level1: '見習神獸',
+              level2: '一星神獸',
+              level3: '二星神獸',
+              level4: '三星神獸',
+              level5: '白銀神獸',
+              level6: '黃金神獸',
+              level7: '鑽石神獸'
+            },
+            rankRange: {
+              0: '0-14分',
+              15: '15-29分',
+              30: '30-49分',
+              50: '50-69分',
+              70: '70-89分',
+              90: '90-99分',
+              100: '100分+'
+            },
+            tools: '百寶箱',
+            toolPicker: '幸運抽籤',
+            toolWheel: '幸運轉盤',
+            toolGroups: '分組競賽',
+            toolTimer: '計時/碼表',
+            toolSeating: '座位表',
+            toolNoise: '聲控儀',
+            toolAttention: '專注提示',
+            toolAttendance: '點名系統',
+            statusPresent: '出席',
+            statusAbsent: '缺席',
+            statusLate: '遲到',
+            statusLeaveEarly: '早退',
+            statusExcused: '請假',
+            statusUniformYes: '有制服',
+            statusUniformNo: '無制服',
+            noUniformBadge: '未穿制服',
+            weekLabel: '第 {n} 週',
+            attendanceSummary: '本週出勤狀況',
+            resetAttendance: '重置本週',
+            exportCSV: '匯出報表',
+            attnBell: '上課鐘聲',
+            attnRooster: '公雞啼叫',
+            attnUFO: '外星召喚',
+            seatAutoGrid: '棋盤排列',
+            seatAutoGroup: '分組排列',
+            seatReset: '重置位置',
+            seatDragTip: '拖曳頭像來安排座位',
+            wheelModeStudents: '學生名單',
+            wheelModeCustom: '自訂選項',
+            wheelCustomPlaceholder: '在此輸入選項，每行一個...\n例如：\n看電影\n玩遊戲\n寫作業',
+            startRoll: '開始點名',
+            stopRoll: '停止 (空白鍵)',
+            congrats: '恭喜中獎！',
+            pickAgain: '再抽一位',
+            spin: 'GO!',
+            spinning: '轉動中...',
+            groupCount: '分組數量：',
+            generateGroups: '開始分組',
+            groupName: '第 {n} 組',
+            groupAdd: '全組加分',
+            timerModeCountDown: '倒數計時',
+            timerModeStopwatch: '碼表',
+            timerStart: '開始',
+            timerPause: '暫停',
+            timerReset: '重置',
+            timerCustom: '輸入分鐘...',
+            timerSet: '設定',
+            timeUp: '時間到！',
+            noiseStart: '開始監測',
+            noiseStop: '停止監測',
+            noiseSensitivity: '麥克風靈敏度',
+            noiseLevel: '目前音量',
+            noiseTimeTotal: '監測時間',
+            noiseTimeLoud: '噪音超標時間',
+            noiseZoneGreen: '安靜舒適',
+            noiseZoneYellow: '音量注意',
+            noiseZoneRed: '太吵了！',
+            noisePermissionDenied: '無法存取麥克風，請確認瀏覽器權限。',
+            detailTitle: '的集點卡',
+            detailSnacks: '獲得的點心',
+            detailClose: '關閉',
+            wakeLockOn: '螢幕常亮：已開啟',
+            wakeLockOff: '螢幕常亮：已關閉',
+            reset: '重置',
+            addStudent: '新增同學',
+            totalEnergy: '全班總能量',
+            studentCount: '學生：',
+            studentCountUnit: ' 人',
+            fromStudents: '來自學生',
+            fromClass: '來自班級',
+            classDeduct: '全班扣分',
+            classAdd: '全班加分',
+            points: '點',
+            currentReward: '本期獎勵：',
+            enterReward: '輸入獎勵名稱...',
+            goalReached: '達成！🎉',
+            goalMsgReached: '太棒了！目標達成！全班可以 {reward} 囉！',
+            goalMsgProgress: '加油！快要達成目標了！',
+            welcomeNew: '歡迎新同學',
+            batchImportTitle: '批次匯入學生',
+            singleAdd: '單一新增',
+            batchImport: '批次匯入',
+            nameLabel: '姓名 (中文或英文)',
+            namePlaceholder: '例如: Justin 或 賈斯丁',
+            selectAvatar: '選擇守護神獸',
+            joinClass: '加入班級',
+            cancel: '取消',
+            confirm: '確定',
+            batchLabel: '輸入學生姓名清單 (可用換行或逗號分隔)',
+            batchPlaceholder: '例如：\nJustin\nChloe\nEvan',
+            batchNote: '系統將會自動為每位學生隨機分配守護神獸。',
+            startImport: '開始匯入',
+            noStudents: '還沒有學生喔！',
+            startClick: '點擊右上角的「新增同學」開始吧！',
+            editStudent: '編輯學生資料',
+            changeAvatar: '更換守護神獸',
+            saveChanges: '儲存修改',
+            confirmDelete: '確定要移除這位學生嗎？',
+            confirmReset: '確定要歸零全班的分數嗎？ (包含學生分數和全班加分)',
+            celebrationTitle: '目標達成！',
+            celebrationBody: '太棒了！全班同學通力合作！',
+            rewardLabel: '本次獎勵',
+            celebrationBtn: 'Yay! We did it!',
+            designBy: 'Powered by Gemini | Sophia老師的AI練習本',
+            deduct: '扣分',
+            add: '加分',
+            mute: '靜音',
+            unmute: '開啟音效',
+            editTitlePlaceholder: '輸入班級名稱...',
+            editSubtitlePlaceholder: '輸入本期目標或是班級口號...',
+          },
+          'en': {
+            defaultTitle: 'Classroom Manager',
+            defaultSubtitle: 'Learn Chinese, Earn Rewards!',
+            rankInfo: 'Ranks',
+            ranks: {
+              seed: 'Little Seed',
+              sprout: 'Sprout',
+              bonsai: 'Bonsai',
+              flower_pink: 'Pink Flower',
+              flower_gold: 'Gold Flower',
+              flower_purple: 'Mystic Flower',
+              garden: 'Legend Garden'
+            },
+            studentRanks: {
+              level1: 'Trainee',
+              level2: '1-Star',
+              level3: '2-Star',
+              level4: '3-Star',
+              level5: 'Silver',
+              level6: 'Gold',
+              level7: 'Diamond'
+            },
+            rankRange: {
+              0: '0-14 pts',
+              15: '15-29 pts',
+              30: '30-49 pts',
+              50: '50-69 pts',
+              70: '70-89 pts',
+              90: '90-99 pts',
+              100: '100+ pts'
+            },
+            tools: 'Toolbox',
+            toolPicker: 'Picker',
+            toolWheel: 'Wheel',
+            toolGroups: 'Groups',
+            toolTimer: 'Timer/Stopwatch',
+            toolSeating: 'Seating',
+            toolNoise: 'Noise Meter',
+            toolAttention: 'Attention',
+            toolAttendance: 'Attendance',
+            statusPresent: 'Present',
+            statusAbsent: 'Absent',
+            statusLate: 'Late',
+            statusLeaveEarly: 'Leave Early',
+            statusExcused: 'Excused',
+            statusUniformYes: 'Uniform',
+            statusUniformNo: 'No Uniform',
+            noUniformBadge: 'No Uniform',
+            weekLabel: 'Week {n}',
+            attendanceSummary: 'Weekly Summary',
+            resetAttendance: 'Reset Wk',
+            exportCSV: 'Export CSV',
+            attnBell: 'School Bell',
+            attnRooster: 'Rooster',
+            attnUFO: 'UFO',
+            seatAutoGrid: 'Grid',
+            seatAutoGroup: 'Groups',
+            seatReset: 'Reset',
+            seatDragTip: 'Drag to arrange seats',
+            wheelModeStudents: 'Students',
+            wheelModeCustom: 'Custom',
+            wheelCustomPlaceholder: 'Enter options, one per line...\ne.g.,\nCandy\nHomework pass',
+            startRoll: 'Start Roll',
+            stopRoll: 'Stop (Space)',
+            congrats: 'Winner!',
+            pickAgain: 'Pick Again',
+            spin: 'SPIN',
+            spinning: 'Spinning...',
+            groupCount: 'Groups:',
+            generateGroups: 'Generate',
+            groupName: 'Group {n}',
+            groupAdd: 'Group Add',
+            timerModeCountDown: 'Timer',
+            timerModeStopwatch: 'Stopwatch',
+            timerStart: 'Start',
+            timerPause: 'Pause',
+            timerReset: 'Reset',
+            timerCustom: 'Enter mins...',
+            timerSet: 'Set',
+            timeUp: "Time's Up!",
+            noiseStart: 'Start',
+            noiseStop: 'Stop',
+            noiseSensitivity: 'Sensitivity',
+            noiseLevel: 'Level',
+            noiseTimeTotal: 'Duration',
+            noiseTimeLoud: 'Loud Time',
+            noiseZoneGreen: 'Good',
+            noiseZoneYellow: 'Warning',
+            noiseZoneRed: 'Too Loud!',
+            noisePermissionDenied: 'Mic permission denied. Please allow access.',
+            detailTitle: "'s Card",
+            detailSnacks: 'Treats Collected',
+            detailClose: 'Close',
+            wakeLockOn: 'Wake Lock: ON',
+            wakeLockOff: 'Wake Lock: OFF',
+            reset: 'Reset',
+            addStudent: 'Add Student',
+            totalEnergy: 'Class Energy',
+            studentCount: 'Students: ',
+            studentCountUnit: '',
+            fromStudents: 'From Students',
+            fromClass: 'From Class',
+            classDeduct: 'Class Deduct',
+            classAdd: 'Class Add',
+            points: 'pts',
+            currentReward: 'Reward:',
+            enterReward: 'Enter reward...',
+            goalReached: 'Goal Met! 🎉',
+            goalMsgReached: 'Awesome! Goal met! Time for {reward}!',
+            goalMsgProgress: 'Keep going! Almost there!',
+            welcomeNew: 'Welcome',
+            batchImportTitle: 'Batch Import',
+            singleAdd: 'Single',
+            batchImport: 'Batch',
+            nameLabel: 'Name',
+            namePlaceholder: 'e.g., Justin',
+            selectAvatar: 'Select Guardian',
+            joinClass: 'Join Class',
+            cancel: 'Cancel',
+            confirm: 'Confirm',
+            batchLabel: 'Enter names (separated by new lines or commas)',
+            batchPlaceholder: 'e.g.,\nJustin\nChloe\nEvan',
+            batchNote: 'Guardians will be assigned randomly.',
+            startImport: 'Import',
+            noStudents: 'No students yet!',
+            startClick: 'Click "Add Student" to start!',
+            editStudent: 'Edit Student',
+            changeAvatar: 'Change Guardian',
+            saveChanges: 'Save Changes',
+            confirmDelete: 'Are you sure you want to remove this student?',
+            confirmReset: 'Reset all points to zero? (Includes class points)',
+            celebrationTitle: 'Goal Achieved!',
+            celebrationBody: 'Great teamwork everyone!',
+            rewardLabel: 'Reward',
+            celebrationBtn: 'Yay! We did it!',
+            designBy: 'Powered by Gemini | Sophia老師的AI練習本',
+            deduct: 'Deduct',
+            add: 'Add',
+            mute: 'Mute',
+            unmute: 'Unmute',
+            editTitlePlaceholder: 'Enter class name...',
+            editSubtitlePlaceholder: 'Enter class goal or slogan...',
+          },
+          'zh-CN': {
+            defaultTitle: '课堂管理神器',
+            defaultSubtitle: '快乐学中文，集点换奖励！',
+            rankInfo: '等级说明',
+            ranks: {
+              seed: '小小种子',
+              sprout: '发芽小草',
+              bonsai: '雅致盆景',
+              flower_pink: '粉红花语',
+              flower_gold: '金黄花语',
+              flower_purple: '梦幻花语',
+              garden: '传说花园'
+            },
+            studentRanks: {
+              level1: '见习神兽',
+              level2: '一星神兽',
+              level3: '二星神兽',
+              level4: '三星神兽',
+              level5: '白银神兽',
+              level6: '黄金神兽',
+              level7: '钻石神兽'
+            },
+            rankRange: {
+              0: '0-14分',
+              15: '15-29分',
+              30: '30-49分',
+              50: '50-69分',
+              70: '70-89分',
+              90: '90-99分',
+              100: '100分+'
+            },
+            tools: '百宝箱',
+            toolPicker: '幸运抽签',
+            toolWheel: '幸运转盘',
+            toolGroups: '分组竞赛',
+            toolTimer: '计时器/码表',
+            toolSeating: '座位表',
+            toolNoise: '声控仪',
+            toolAttention: '专注提示',
+            toolAttendance: '点名系统',
+            statusPresent: '出席',
+            statusAbsent: '缺席',
+            statusLate: '迟到',
+            statusLeaveEarly: '早退',
+            statusExcused: '请假',
+            statusUniformYes: '有制服',
+            statusUniformNo: '无制服',
+            noUniformBadge: '未穿制服',
+            weekLabel: '第 {n} 周',
+            attendanceSummary: '本周出勤状况',
+            resetAttendance: '重置本周',
+            exportCSV: '导出报表',
+            attnBell: '上课钟声',
+            attnRooster: '公鸡啼叫',
+            attnUFO: '外星召唤',
+            seatAutoGrid: '棋盘排列',
+            seatAutoGroup: '分组排列',
+            seatReset: '重置位置',
+            seatDragTip: '拖曳头像来安排座位',
+            wheelModeStudents: '学生名单',
+            wheelModeCustom: '自订选项',
+            wheelCustomPlaceholder: '在此输入选项，每行一个...\n例如：\n看电影\n玩游戏\n写作业',
+            startRoll: '开始点名',
+            stopRoll: '停止 (空白键)',
+            congrats: '恭喜中奖！',
+            pickAgain: '再抽一位',
+            spin: 'GO!',
+            spinning: '转动中...',
+            groupCount: '分组数量：',
+            generateGroups: '开始分组',
+            groupName: '第 {n} 组',
+            groupAdd: '全组加分',
+            timerModeCountDown: '倒数计时',
+            timerModeStopwatch: '码表',
+            timerStart: '开始',
+            timerPause: '暂停',
+            timerReset: '重置',
+            timerCustom: '输入分钟...',
+            timerSet: '设定',
+            timeUp: '时间到！',
+            noiseStart: '开始监测',
+            noiseStop: '停止监测',
+            noiseSensitivity: '麦克风灵敏度',
+            noiseLevel: '目前音量',
+            noiseTimeTotal: '监测时间',
+            noiseTimeLoud: '噪音超标时间',
+            noiseZoneGreen: '安静舒适',
+            noiseZoneYellow: '音量注意',
+            noiseZoneRed: '太吵了！',
+            noisePermissionDenied: '无法存取麦克风，请确认浏览器权限。',
+            detailTitle: '的集点卡',
+            detailSnacks: '获得的恶点心',
+            detailClose: '关闭',
+            wakeLockOn: '萤幕常亮：已开启',
+            wakeLockOff: '萤幕常亮：已关闭',
+            reset: '重置',
+            addStudent: '新增同学',
+            totalEnergy: '全班总能量',
+            studentCount: '学生：',
+            studentCountUnit: ' 人',
+            fromStudents: '来自学生',
+            fromClass: '来自班级',
+            classDeduct: '全班扣分',
+            classAdd: '全班加分',
+            points: '点',
+            currentReward: '本期奖励：',
+            enterReward: '输入奖励名称...',
+            goalReached: '达成！🎉',
+            goalMsgReached: '太棒了！目标达成！全班可以 {reward} 啰！',
+            goalMsgProgress: '加油！快要达成目标了！',
+            welcomeNew: '欢迎新同学',
+            batchImportTitle: '批量导入学生',
+            singleAdd: '单一新增',
+            batchImport: '批量导入',
+            nameLabel: '姓名 (中文或英文)',
+            namePlaceholder: '例如: Justin 或 贾斯丁',
+            selectAvatar: '选择守护神兽',
+            joinClass: '加入班级',
+            cancel: '取消',
+            confirm: '确定',
+            batchLabel: '输入学生姓名清单 (可用换行或逗号分隔)',
+            batchPlaceholder: '例如：\nJustin\nChloe\nEvan',
+            batchNote: '系统将会自动为每位学生随机分配守护神兽。',
+            startImport: '开始导入',
+            noStudents: '还没有学生喔！',
+            startClick: '点击右上角的“新增同学”开始吧！',
+            editStudent: '编辑学生资料',
+            changeAvatar: '更换守护神兽',
+            saveChanges: '保存修改',
+            confirmDelete: '确定要移除这位学生吗？',
+            confirmReset: '确定要归零全班的分数吗？ (包含学生分数和全班加分)',
+            celebrationTitle: '目标达成！',
+            celebrationBody: '太棒了！全班同学通力合作！',
+            rewardLabel: '本次奖励',
+            celebrationBtn: '好耶！我们最棒！',
+            designBy: 'Powered by Gemini | Sophia老师的AI练习本',
+            deduct: '扣分',
+            add: '加分',
+            mute: '静音',
+            unmute: '开启音效',
+            editTitlePlaceholder: '输入班级名称...',
+            editSubtitlePlaceholder: '输入本期目标或是班级口号...',
+          }
+        };
+
+        const RANK_STEPS = [
+          { points: 0, icon: '🌰', key: 'seed' },
+          { points: 15, icon: '🌱', key: 'sprout' },
+          { points: 30, icon: '🪴', key: 'bonsai' },
+          { points: 50, icon: '🌸', key: 'flower_pink' },
+          { points: 70, icon: '🌻', key: 'flower_gold' },
+          { points: 90, icon: '🪻', key: 'flower_purple' },
+          { points: 100, icon: '💐', key: 'garden' }
+        ];
+
+        const AVATARS = [
+          { icon: '🐲', name: '神龍' }, { icon: '🦄', name: '獨角獸' }, { icon: '🦖', name: '恐龍' }, { icon: '🦕', name: '雷龍' }, 
+          { icon: '🤖', name: '機器人' }, { icon: '👽', name: '外星人' }, { icon: '👻', name: '小幽靈' }, { icon: '👾', name: '小怪獸' }, 
+          { icon: '🦁', name: '獅子' }, { icon: '🐯', name: '老虎' }, { icon: '🐘', name: '大象' }, { icon: '🦒', name: '長頸鹿' }, 
+          { icon: '🦘', name: '袋鼠' }, { icon: '🐺', name: '野狼' }, { icon: '🐻', name: '熊熊' }, { icon: '🐼', name: '熊貓' }, 
+          { icon: '🐨', name: '無尾熊' }, { icon: '🐊', name: '鱷魚' }, { icon: '🦛', name: '河馬' }, { icon: '🦏', name: '犀牛' }, 
+          { icon: '🐪', name: '駱駝' }, { icon: '🦙', name: '羊駝' }, { icon: '🐶', name: '狗狗' }, { icon: '🐱', name: '貓咪' }, 
+          { icon: '🐭', name: '老鼠' }, { icon: '🐹', name: '倉鼠' }, { icon: '🐰', name: '兔子' }, { icon: '🦊', name: '狐狸' }, 
+          { icon: '🐮', name: '牛牛' }, { icon: '🐷', name: '小豬' }, { icon: '🐴', name: '馬兒' }, { icon: '🐑', name: '綿羊' }, 
+          { icon: '🐐', name: '山羊' }, { icon: '🐵', name: '猴子' }, { icon: '🦥', name: '樹懶' }, { icon: '🦫', name: '河狸' }, 
+          { icon: '🦔', name: '刺蝟' }, { icon: '🐿️', name: '松鼠' }, { icon: '🦝', name: '浣熊' }, { icon: '🐔', name: '公雞' }, 
+          { icon: '🦆', name: '鴨子' }, { icon: '🐧', name: '企鵝' }, { icon: '🦉', name: '貓頭鷹' }, { icon: '🦢', name: '天鵝' }, 
+          { icon: '🦜', name: '鸚鵡' }, { icon: '🦩', name: '紅鶴' }, { icon: '🦚', name: '孔雀' }, { icon: '🦅', name: '老鷹' }, 
+          { icon: '🐬', name: '海豚' }, { icon: '🐳', name: '鯨魚' }, { icon: '🦈', name: '鯊魚' }, { icon: '🦦', name: '海獺' }, 
+          { icon: '🦭', name: '海豹' }, { icon: '🐙', name: '章魚' }, { icon: '🐢', name: '烏龜' }, { icon: '🦀', name: '螃蟹' }, 
+          { icon: '🐠', name: '熱帶魚' }, { icon: '🐡', name: '河豚' }, { icon: '🪼', name: '水母' }, { icon: '🦑', name: '魷魚' }, 
+          { icon: '🦐', name: '蝦子' }, { icon: '🐸', name: '青蛙' }, { icon: '🐍', name: '蛇' }, { icon: '🦎', name: '蜥蜴' }, 
+          { icon: '🐝', name: '蜜蜂' }, { icon: '🦋', name: '蝴蝶' }, { icon: '🐞', name: '瓢蟲' }, { icon: '🐜', name: '螞蟻' }, 
+          { icon: '🪲', name: '甲蟲' }, { icon: '🐌', name: '蝸牛' }
+        ];
+
+        const playGameSound = (type, isMuted) => {
+          if (isMuted) return;
+          try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            if (['success', 'error', 'roll'].includes(type)) {
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+            }
+            
+            if (type === 'success') {
+              oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(1000, now); oscillator.frequency.exponentialRampToValueAtTime(2000, now + 0.1); gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3); oscillator.start(); oscillator.stop(now + 0.3);
+            } else if (type === 'roll') {
+              oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(200, now); oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.05); gainNode.gain.setValueAtTime(0.3, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05); oscillator.start(); oscillator.stop(now + 0.05);
+            } else if (type === 'alarm') {
+              const beep = (t) => { const osc = ctx.createOscillator(); const g = ctx.createGain(); osc.connect(g); g.connect(ctx.destination); osc.type = 'square'; osc.frequency.setValueAtTime(800, t); g.gain.setValueAtTime(0.1, t); g.gain.setValueAtTime(0, t + 0.1); osc.start(t); osc.stop(t + 0.1); }; beep(now); beep(now + 0.2); beep(now + 0.4);
+            } else if (type === 'school-bell') {
+              const bell = (t, f) => { [1, 2, 3, 4.2].forEach(ratio => { const o = ctx.createOscillator(); const g = ctx.createGain(); o.frequency.value = f * ratio; o.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(0.15 / ratio, t); g.gain.exponentialRampToValueAtTime(0.001, t + 1.8); o.start(t); o.stop(t + 2); }); }; bell(now, 659); bell(now + 0.6, 523); bell(now + 1.2, 587); bell(now + 1.8, 392); const t2 = now + 3.0; bell(t2, 392); bell(t2 + 0.6, 587); bell(t2 + 1.2, 659); bell(t2 + 1.8, 523);
+            } else if (type === 'rooster') {
+                const crow = (startTime, duration, freqStart, freqEnd, vol = 0.2) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.type = 'sawtooth'; osc.connect(gain); gain.connect(ctx.destination); osc.frequency.setValueAtTime(freqStart, startTime); osc.frequency.linearRampToValueAtTime(freqEnd, startTime + duration); gain.gain.setValueAtTime(0, startTime); gain.gain.linearRampToValueAtTime(vol, startTime + 0.05); gain.gain.setValueAtTime(vol, startTime + duration - 0.1); gain.gain.linearRampToValueAtTime(0, startTime + duration); osc.start(startTime); osc.stop(startTime + duration); }; crow(now, 0.2, 300, 350); crow(now + 0.25, 0.2, 350, 400); crow(now + 0.5, 0.2, 350, 400); crow(now + 0.8, 1.2, 500, 300, 0.3);
+            } else if (type === 'ufo') {
+                const osc = ctx.createOscillator(); const gain = ctx.createGain(); const lfo = ctx.createOscillator(); const lfoGain = ctx.createGain(); lfo.type = 'sine'; lfo.frequency.setValueAtTime(15, now); lfo.frequency.linearRampToValueAtTime(40, now + 3); lfoGain.gain.value = 600; osc.type = 'sine'; osc.frequency.value = 600; lfo.connect(lfoGain); lfoGain.connect(osc.frequency); osc.connect(gain); gain.connect(ctx.destination); gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 3); osc.start(now); lfo.start(now); osc.stop(now + 3); lfo.stop(now + 3);
+            } else if (type === 'error') {
+              oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(150, now); oscillator.frequency.linearRampToValueAtTime(100, now + 0.2); gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.linearRampToValueAtTime(0.01, now + 0.2); oscillator.start(); oscillator.stop(now + 0.2);
+            } else if (type === 'victory') {
+              const notes = [523.25, 659.25, 783.99, 1046.50]; notes.forEach((freq, i) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, now + i * 0.08); gain.gain.setValueAtTime(0.15, now + i * 0.08); gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.4); osc.start(now + i * 0.08); osc.stop(now + i * 0.08 + 0.4); }); const chordTime = now + 0.32; [523.25, 659.25, 783.99, 1046.50].forEach((freq) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, chordTime); gain.gain.setValueAtTime(0.1, chordTime); gain.gain.exponentialRampToValueAtTime(0.001, chordTime + 2.5); osc.start(chordTime); osc.stop(chordTime + 2.5); });
+            } else if (type === 'rain') {
+               const bufferSize = ctx.sampleRate * 2.5; const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; } const noise = ctx.createBufferSource(); noise.buffer = buffer; const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 800; const gain = ctx.createGain(); noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination); gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.5); gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 2.0); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.5); noise.start();
+            } else if (type === 'wind') {
+               const bufferSize = ctx.sampleRate * 3.0; const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate); const data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; } const noise = ctx.createBufferSource(); noise.buffer = buffer; const filter = ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.Q.value = 1.0; filter.frequency.setValueAtTime(200, ctx.currentTime); filter.frequency.linearRampToValueAtTime(600, ctx.currentTime + 1.5); filter.frequency.linearRampToValueAtTime(150, ctx.currentTime + 3.0); const gain = ctx.createGain(); noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination); gain.gain.setValueAtTime(0, ctx.currentTime); gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.5); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 3.0); noise.start();
+            } else if (type === 'thunder') {
+               const playThunderClap = (time, intensity) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, time); osc.frequency.exponentialRampToValueAtTime(20, time + 0.5); gain.gain.setValueAtTime(intensity, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.8); osc.start(time); osc.stop(time + 0.8); const subOsc = ctx.createOscillator(); const subGain = ctx.createGain(); subOsc.connect(subGain); subGain.connect(ctx.destination); subOsc.type = 'square'; subOsc.frequency.setValueAtTime(30, time); subGain.gain.setValueAtTime(intensity * 0.5, time); subGain.gain.exponentialRampToValueAtTime(0.01, time + 0.6); subOsc.start(time); subOsc.stop(time + 0.6); }; playThunderClap(now, 0.5); playThunderClap(now + 0.4, 0.8); playThunderClap(now + 1.0, 0.4);  
+            } else if (type === 'birds') {
+                const chirp = (startTime, freqStart, freqEnd) => { const osc = ctx.createOscillator(); const gain = ctx.createGain(); osc.connect(gain); gain.connect(ctx.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(freqStart, startTime); osc.frequency.linearRampToValueAtTime(freqEnd, startTime + 0.1); gain.gain.setValueAtTime(0.02, startTime); gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.1); osc.start(startTime); osc.stop(startTime + 0.1); }; chirp(now, 2500, 4500); chirp(now + 0.2, 3000, 5000); chirp(now + 0.4, 2500, 4000);
+            }
+          } catch (e) {
+            console.error("Audio play failed", e);
+          }
+        };
+
+        // 學生神獸獨立進化表
+        const getRank = (points, lang = 'zh-TW') => { 
+          const t = TRANSLATIONS[lang]; 
+          if (points >= 100) return { title: t.studentRanks.level7, color: 'text-rose-600', bg: 'bg-rose-100', icon: '👑' }; 
+          if (points >= 90) return { title: t.studentRanks.level6, color: 'text-purple-600', bg: 'bg-purple-100', icon: '🌟' }; 
+          if (points >= 70) return { title: t.studentRanks.level5, color: 'text-yellow-600', bg: 'bg-yellow-100', icon: '☀️' }; 
+          if (points >= 50) return { title: t.studentRanks.level4, color: 'text-pink-600', bg: 'bg-pink-100', icon: '🌙' }; 
+          if (points >= 30) return { title: t.studentRanks.level3, color: 'text-emerald-700', bg: 'bg-emerald-100', icon: '🦴' }; 
+          if (points >= 15) return { title: t.studentRanks.level2, color: 'text-lime-600', bg: 'bg-lime-100', icon: '🐾' }; 
+          return { title: t.studentRanks.level1, color: 'text-stone-500', bg: 'bg-stone-200', icon: '🥚' }; 
+        };
+
+        const Confetti = () => { const pieces = Array.from({ length: 50 }).map((_, i) => ({ id: i, left: Math.random() * 100 + '%', animationDelay: Math.random() * 2 + 's', backgroundColor: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'][Math.floor(Math.random() * 5)], rotation: Math.random() * 360 + 'deg', })); return ( <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden"> {pieces.map((p) => ( <div key={p.id} className="absolute w-3 h-3 top-[-20px] animate-confetti-fall" style={{ left: p.left, animationDelay: p.animationDelay, backgroundColor: p.backgroundColor, transform: `rotate(${p.rotation})`, }} /> ))} </div> ); };
+        const Rain = () => { const drops = Array.from({ length: 40 }).map((_, i) => ({ id: i, left: Math.random() * 100 + '%', animationDuration: 1 + Math.random() + 's', animationDelay: Math.random() * 2 + 's', icon: ['💧', '💧', '🌧️', '☔'][Math.floor(Math.random() * 4)] })); return ( <div className="fixed inset-0 pointer-events-none z-[50] overflow-hidden bg-blue-50/20"> {drops.map((d) => ( <div key={d.id} className="absolute text-6xl animate-rain-fall opacity-80" style={{ left: d.left, top: '-50px', animationDuration: d.animationDuration, animationDelay: d.animationDelay, }} > {d.icon} </div> ))} </div> ); };
+        const StormRain = () => { const drops = Array.from({ length: 80 }).map((_, i) => ({ id: i, left: Math.random() * 100 + '%', animationDuration: 0.3 + Math.random() * 0.4 + 's', animationDelay: Math.random() * 1 + 's', })); return ( <div className="fixed inset-0 pointer-events-none z-[50] overflow-hidden"> {drops.map((d) => ( <div key={d.id} className="absolute w-[2px] h-12 bg-slate-400 rounded-full animate-storm-fall" style={{ left: d.left, top: '-50px', opacity: 0.6, animationDuration: d.animationDuration, animationDelay: d.animationDelay, }} /> ))} </div> ); };
+        const Thunder = () => { return ( <div className="fixed inset-0 pointer-events-none z-[60] flex items-center justify-center overflow-hidden"> <div className="absolute inset-0 bg-slate-900/70 animate-darken-sky" /> <div className="absolute top-32 left-[10%] text-[180px] animate-cloud-move-right opacity-90 z-20">⛈️</div> <div className="absolute top-32 right-[10%] text-[180px] animate-cloud-move-left opacity-90 z-20">⛈️</div> <div className="absolute bottom-20 text-[250px] animate-tornado-enter z-20 opacity-90 filter drop-shadow-2xl">🌪️</div> <div className="absolute inset-0 animate-rain-fade-in z-10"><StormRain /></div> <div className="absolute top-[25%] text-[220px] animate-strike-triple drop-shadow-[0_0_60px_rgba(255,255,0,1)] z-30 filter brightness-150">⚡</div> <div className="absolute top-[20%] left-[30%] text-[100px] animate-flash-background-1 opacity-0 z-10">⚡</div> <div className="absolute top-[30%] right-[30%] text-[120px] animate-flash-background-2 opacity-0 z-10">⚡</div> <div className="absolute top-[15%] left-[48%] -translate-x-1/2 text-[80px] animate-flash-background-3 opacity-0 z-10">⚡</div> <div className="absolute inset-0 bg-white/40 animate-lightning-flash-triple mix-blend-overlay z-40" /> </div> ); };
+        const SunAndBirds = ({ isMuted }) => { useEffect(() => { if (isMuted) return; playGameSound('birds', isMuted); const interval = setInterval(() => { playGameSound('birds', isMuted); }, 1500); return () => clearInterval(interval); }, [isMuted]); return ( <div className="fixed inset-0 pointer-events-none z-[55] overflow-hidden flex items-center justify-center bg-yellow-100/30 transition-opacity duration-1000 animate-in fade-in"> <div className="absolute top-5 right-20 text-[250px] animate-spin-slow opacity-90 drop-shadow-lg transform origin-center z-20">☀️</div> <div className="absolute bottom-[-50px] left-1/2 -translate-x-1/2 text-[300px] md:text-[500px] opacity-90 animate-pulse z-10 pointer-events-none whitespace-nowrap filter drop-shadow-2xl">🌈</div> <div className="absolute top-[25%] -left-[10%] text-6xl animate-fly-right z-30" style={{ animationDelay: '0s' }}><div style={{ transform: 'scaleX(-1)' }}>🐦</div></div> <div className="absolute top-[50%] -left-[10%] text-5xl animate-fly-right z-30" style={{ animationDelay: '0.4s' }}><div style={{ transform: 'scaleX(-1)' }}>🕊️</div></div> <div className="absolute top-[15%] -left-[10%] text-4xl animate-fly-right z-30" style={{ animationDelay: '0.9s' }}><div style={{ transform: 'scaleX(-1)', filter: 'hue-rotate(150deg) saturate(2)' }}>🐦</div></div> <div className="absolute top-[35%] -left-[10%] text-5xl animate-fly-right z-30" style={{ animationDelay: '1.5s' }}><div style={{ transform: 'scaleX(-1)' }}>🐦</div></div> <div className="absolute top-[10%] -left-[10%] text-4xl animate-fly-right z-30" style={{ animationDelay: '2.2s' }}><div style={{ transform: 'scaleX(-1)' }}>🕊️</div></div> <div className="absolute top-[45%] -left-[10%] text-6xl animate-fly-right z-30" style={{ animationDelay: '2.8s' }}><div style={{ transform: 'scaleX(-1)', filter: 'hue-rotate(150deg) saturate(2)' }}>🐦</div></div> </div> ); };
+        const AttentionOverlay = ({ type, onClose }) => { const [visible, setVisible] = useState(true); useEffect(() => { const timer = setTimeout(() => { setVisible(false); setTimeout(onClose, 500); }, 5000); return () => clearTimeout(timer); }, [onClose]); if (!visible) return null; return ( <div className="fixed inset-0 z-[80] pointer-events-none flex items-center justify-center overflow-hidden"> <div className="absolute inset-0 bg-black/20 animate-in fade-in duration-500"></div> {type === 'school-bell' && ( <div className="relative z-10 flex flex-col items-center"> <div className="text-[200px] animate-bell-swing drop-shadow-2xl origin-top">🔔</div> <div className="mt-8 text-6xl font-black text-white bg-indigo-600/90 px-8 py-4 rounded-full shadow-xl animate-bounce"> 上課囉！ </div> <div className="absolute top-0 right-[-100px] text-8xl animate-pulse">🎵</div> <div className="absolute bottom-0 left-[-100px] text-7xl animate-bounce" style={{ animationDelay: '0.2s' }}>🎶</div> </div> )} {type === 'rooster' && ( <div className="relative z-10 flex flex-col items-center w-full h-full justify-center"> <div className="absolute bottom-[-20%] left-1/2 -translate-x-1/2 w-[150vw] h-[150vw] bg-gradient-to-t from-yellow-300 to-orange-500 rounded-full opacity-60 animate-in slide-in-from-bottom duration-1000 blur-3xl"></div> <div className="text-[250px] animate-rooster-crow drop-shadow-2xl z-20">🐓</div> <div className="absolute top-20 right-20 text-[150px] animate-spin-slow opacity-90">☀️</div> <div className="mt-4 text-6xl font-black text-orange-600 bg-white/90 px-10 py-5 rounded-full shadow-xl animate-in zoom-in duration-300 border-4 border-orange-400 z-20"> 提起精神！ </div> </div> )} {type === 'ufo' && ( <div className="relative z-10 w-full h-full"> <div className="absolute top-[10%] left-1/2 -translate-x-1/2 text-[180px] animate-ufo-hover z-30 drop-shadow-[0_0_30px_rgba(50,255,50,0.8)]"> 🛸 </div> <div className="absolute top-[28%] left-1/2 -translate-x-1/2 w-[200px] bg-gradient-to-b from-green-400/80 to-transparent z-20 animate-beam rounded-b-3xl blur-sm"></div> <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-[100px] animate-float-up z-20 transition-all duration-[3000ms]" style={{ animationDuration: '3s' }}> 🐮 </div> <div className="absolute inset-0 bg-indigo-900/30 z-0"></div> </div> )} </div> ); };
+
+        const StudentDetailModal = ({ student, onClose, lang }) => { 
+          const t = TRANSLATIONS[lang]; 
+          const rank = getRank(student.points, lang); 
+          const icons = Array.from({ length: student.points }); 
+          const snackIcons = ['🍬', '🍪', '🍩', '🍫', '🍭']; 
+          const size = Math.min(280, 120 + student.points * 2); 
+          return ( 
+            <div className="fixed inset-0 bg-black/60 z-[90] flex items-center justify-center p-4 animate-in fade-in duration-200"> 
+              <div className="bg-white w-full max-w-3xl h-[80vh] rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden relative"> 
+                <div className="w-full md:w-1/3 bg-orange-50 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-orange-100 relative overflow-hidden"> 
+                  <div className="mb-4 filter drop-shadow-lg animate-bounce-in transition-all duration-500 ease-out flex items-center justify-center" style={{ fontSize: `${size}px`, height: '280px', width: '100%' }} > 
+                    {student.avatar} 
+                  </div> 
+                  <h2 className="text-3xl font-black text-slate-800 mb-2 text-center relative z-10">{student.name}</h2> 
+                  <div className={`px-4 py-1 rounded-full text-sm font-bold ${rank.bg} ${rank.color} flex items-center gap-2 shadow-sm relative z-10`}> 
+                    <span className="text-xl">{rank.icon}</span> {rank.title} 
+                  </div> 
+                  <div className="mt-8 text-6xl font-black text-orange-500 font-mono relative z-10">{student.points}</div> 
+                  <div className="text-slate-400 font-bold text-sm uppercase tracking-wider relative z-10">{t.points}</div> 
+                </div> 
+                <div className="flex-1 flex flex-col bg-slate-50 relative"> 
+                  <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-white shadow-sm z-10"> 
+                    <h3 className="font-bold text-slate-500 flex items-center gap-2"> <Gift className="text-pink-500" size={20}/> {t.detailSnacks} </h3> 
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"> <X size={24}/> </button> 
+                  </div> 
+                  <div className="flex-1 overflow-y-auto p-6"> 
+                    {icons.length === 0 ? ( 
+                      <div className="h-full flex flex-col items-center justify-center text-slate-300"> <FlaskConical size={64} className="mb-4 opacity-20"/> <p>Empty...</p> </div> 
+                    ) : ( 
+                      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-3 content-start"> 
+                        {icons.map((_, i) => ( <div key={i} className="aspect-square flex items-center justify-center bg-white rounded-xl shadow-sm border border-slate-100 text-3xl animate-in zoom-in duration-300" style={{ animationDelay: `${Math.min(i * 0.05, 1)}s` }}> {snackIcons[i % snackIcons.length]} </div> ))} 
+                      </div> 
+                    )} 
+                  </div> 
+                </div> 
+              </div> 
+            </div> 
+          ); 
+        };
+
+        const StudentCard = ({ student, attendanceData, onUpdatePoints, onDelete, onEdit, onView, isMuted, lang }) => { 
+          const [effects, setEffects] = useState([]); 
+          const [animClass, setAnimClass] = useState(''); 
+          const rank = getRank(student.points, lang); 
+          const t = TRANSLATIONS[lang]; 
+          
+          const snackIcons = ['🍬', '🍪', '🍩', '🍫', '🍭'];
+          
+          // 解構點名與制服狀態 (預設出席、有穿制服)
+          const { status = 'present', uniform = true } = attendanceData || {};
+          const isAbsent = status === 'absent';
+          const isExcused = status === 'excused';
+          const isLate = status === 'late';
+          const isLeaveEarly = status === 'leave_early';
+          
+          const triggerEffect = (delta) => { 
+            playGameSound(delta > 0 ? 'success' : 'error', isMuted); 
+            let effectText = delta > 0 ? `+${delta}` : `${delta}`;
+            if (delta > 0) {
+                const snack = snackIcons[student.points % snackIcons.length];
+                effectText = `+${delta} ${snack}`;
+            }
+            const newEffect = { id: Date.now(), text: effectText, color: delta > 0 ? 'text-green-600' : 'text-red-500' }; 
+            setEffects((prev) => [...prev, newEffect]); 
+            if (delta > 0) setAnimClass('animate-bounce-happy'); else setAnimClass('animate-shake-sad'); 
+            onUpdatePoints(student.id, delta); 
+            setTimeout(() => setEffects((prev) => prev.filter((e) => e.id !== newEffect.id)), 1000); 
+            setTimeout(() => setAnimClass(''), 600); 
+          }; 
+          return ( 
+            <div className={`bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition-all border border-slate-100 flex flex-col relative group ${isAbsent || isExcused ? 'opacity-60 grayscale-[50%]' : ''}`}> 
+              {/* Status & Uniform Badges */}
+              {(status !== 'present' || !uniform) && (
+                  <div className="absolute -top-2 -right-2 flex flex-col gap-1 z-40 items-end">
+                      {status !== 'present' && (
+                          <div className={`px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm border border-white
+                              ${isAbsent ? 'bg-red-500 text-white' : ''}
+                              ${isLate ? 'bg-yellow-400 text-yellow-900' : ''}
+                              ${isLeaveEarly ? 'bg-orange-400 text-white' : ''}
+                              ${isExcused ? 'bg-slate-400 text-white' : ''}
+                          `}>
+                              {status === 'absent' ? t.statusAbsent : (status === 'late' ? t.statusLate : (status === 'leave_early' ? t.statusLeaveEarly : t.statusExcused))}
+                          </div>
+                      )}
+                      {!uniform && !isAbsent && !isExcused && (
+                          <div className="px-2 py-0.5 rounded-full text-[10px] font-black shadow-sm border border-white bg-indigo-500 text-white flex items-center gap-1">
+                              <Shirt size={10} /> {t.noUniformBadge}
+                          </div>
+                      )}
+                  </div>
+              )}
+
+              <div className="absolute inset-0 pointer-events-none overflow-visible z-30"> 
+                {effects.map((effect) => ( <div key={effect.id} className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-5xl font-black ${effect.color} animate-float-up`} style={{ textShadow: '2px 2px 0px white' }}>{effect.text}</div> ))} 
+              </div> 
+              <div className="flex items-center justify-between mb-2"> 
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-lg ${rank.bg} ${rank.color} flex items-center gap-1 transition-colors duration-300`}><span>{rank.icon}</span> {rank.title}</span> 
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"> 
+                  <button onClick={(e) => { e.stopPropagation(); onEdit(student); }} className="text-slate-300 hover:text-blue-400 p-1 transition-colors" title={t.editStudent}><Pencil size={14} /></button> 
+                  <button onClick={(e) => { e.stopPropagation(); onDelete(student.id); }} className="text-slate-300 hover:text-red-400 p-1 transition-colors" title={t.confirmDelete}><Trash2 size={14} /></button> 
+                </div> 
+              </div>
+              <div className="flex flex-col items-center mb-2 relative cursor-pointer" onClick={() => onView(student)}> 
+                <div className={`text-5xl mb-1 filter drop-shadow-sm select-none transform transition-transform duration-200 ${animClass} ${!animClass && 'group-hover:scale-110'}`}>{student.avatar}</div> 
+                <h2 className="text-lg font-bold text-slate-800 hover:text-orange-500 transition-colors leading-tight truncate w-full text-center">{student.name}</h2> 
+              </div> 
+              <div className="bg-slate-50 rounded-lg px-3 py-1.5 mb-2 flex justify-between items-center shadow-inner relative overflow-hidden"> 
+                <div className="absolute left-0 bottom-0 top-0 bg-orange-100 opacity-30 transition-all duration-500" style={{ width: `${Math.min(student.points * 2, 100)}%` }} /> 
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider z-10">Pts</span> 
+                <span className="text-xl font-black text-orange-500 font-mono z-10 transition-all duration-300 transform leading-none">{student.points}</span> 
+              </div> 
+              <div className="grid grid-cols-2 gap-2 mt-auto"> 
+                <button onClick={() => triggerEffect(-1)} className="flex items-center justify-center gap-1 py-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors font-bold active:scale-95 text-sm"><Minus size={14} /> {t.deduct}</button> 
+                <button onClick={() => triggerEffect(1)} className="flex items-center justify-center gap-1 py-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors font-bold shadow-sm active:scale-95 active:shadow-none text-sm"><Plus size={14} /> {t.add}</button> 
+              </div> 
+            </div> 
+          ); 
+        };
+
+        const ToolAttendance = ({ students, attendanceRecord, setAttendanceRecord, currentWeek, setCurrentWeek, t }) => {
+            
+            // 取得當前週的資料，若無則為空物件
+            const currentWeekData = attendanceRecord[currentWeek] || {};
+
+            const handleStatusChange = (id, status) => {
+                setAttendanceRecord(prev => {
+                    const weekData = prev[currentWeek] || {};
+                    const studentData = weekData[id] || { status: 'present', uniform: true };
+                    return { ...prev, [currentWeek]: { ...weekData, [id]: { ...studentData, status } } };
+                });
+            };
+
+            const handleUniformToggle = (id) => {
+                setAttendanceRecord(prev => {
+                    const weekData = prev[currentWeek] || {};
+                    const studentData = weekData[id] || { status: 'present', uniform: true };
+                    return { ...prev, [currentWeek]: { ...weekData, [id]: { ...studentData, uniform: !studentData.uniform } } };
+                });
+            };
+
+            const resetCurrentWeek = () => {
+                setAttendanceRecord(prev => {
+                    const newData = { ...prev };
+                    delete newData[currentWeek];
+                    return newData;
+                });
+            };
+
+            const stats = {
+                present: students.filter(s => (currentWeekData[s.id]?.status || 'present') === 'present').length,
+                absent: students.filter(s => currentWeekData[s.id]?.status === 'absent').length,
+                late: students.filter(s => currentWeekData[s.id]?.status === 'late').length,
+                leaveEarly: students.filter(s => currentWeekData[s.id]?.status === 'leave_early').length,
+                excused: students.filter(s => currentWeekData[s.id]?.status === 'excused').length,
+                noUniform: students.filter(s => currentWeekData[s.id]?.uniform === false && currentWeekData[s.id]?.status !== 'absent' && currentWeekData[s.id]?.status !== 'excused').length,
+            };
+
+            const exportToCSV = () => {
+                // 建立 CSV 標題列 (加入統計欄位)
+                let csvContent = "Student Name(學生姓名),Total Present(總出席),Total Absent(總缺席),Total Late(總遲到),Total Leave Early(總早退),Total Excused(總請假),Total No Uniform(總未穿制服),";
+                for (let i = 1; i <= 32; i++) {
+                    csvContent += `W${i} Status(出勤),W${i} Uniform(制服)${i === 32 ? '' : ','}`;
+                }
+                csvContent += "\n";
+
+                // 填入每位學生的 32 週資料與統計
+                students.forEach(student => {
+                    let row = `"${student.name}",`;
+                    let counts = { present: 0, absent: 0, late: 0, leave_early: 0, excused: 0, noUniform: 0 };
+                    let weeklyData = "";
+
+                    for (let i = 1; i <= 32; i++) {
+                        // 💡 修正邏輯：判斷該週是否有紀錄，或者是否小於等於「當前選擇的週數」
+                        const hasWeekRecord = attendanceRecord[i] !== undefined;
+                        const isPastOrCurrentWeek = i <= currentWeek || hasWeekRecord;
+
+                        if (!isPastOrCurrentWeek) {
+                            // 如果是未來的週數且沒有提早紀錄，不計入統計，顯示為未記錄 "-"
+                            weeklyData += `"-","-"${i === 32 ? '' : ','}`;
+                            continue;
+                        }
+
+                        const record = attendanceRecord[i]?.[student.id] || { status: 'present', uniform: true };
+                        
+                        // 統計各狀態總次數
+                        counts[record.status] = (counts[record.status] || 0) + 1;
+                        // 若未穿制服，且非缺席、非請假，則計入未穿制服次數
+                        if (!record.uniform && record.status !== 'absent' && record.status !== 'excused') {
+                            counts.noUniform += 1;
+                        }
+
+                        // 翻譯狀態
+                        let statusText = '';
+                        if (record.status === 'present') statusText = t.statusPresent;
+                        else if (record.status === 'absent') statusText = t.statusAbsent;
+                        else if (record.status === 'late') statusText = t.statusLate;
+                        else if (record.status === 'leave_early') statusText = t.statusLeaveEarly;
+                        else if (record.status === 'excused') statusText = t.statusExcused;
+
+                        let uniformText = record.uniform ? t.statusUniformYes : t.statusUniformNo;
+
+                        weeklyData += `"${statusText}","${uniformText}"${i === 32 ? '' : ','}`;
+                    }
+                    
+                    // 將統計數據與每週明細組合
+                    row += `"${counts.present}","${counts.absent}","${counts.late}","${counts.leave_early}","${counts.excused}","${counts.noUniform}",` + weeklyData;
+                    csvContent += row + "\n";
+                });
+
+                // 加上 BOM (\uFEFF) 確保 Excel 開啟時中文不會亂碼
+                const bom = "\uFEFF";
+                const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                const url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", `Attendance_Record.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            return (
+                <div className="flex flex-col h-full w-full">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 p-4 bg-teal-50 rounded-xl relative">
+                        {/* 32週 選擇器 */}
+                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow-sm border border-teal-100">
+                            <span className="font-bold text-teal-800">🗓️</span>
+                            <select 
+                                value={currentWeek} 
+                                onChange={(e) => setCurrentWeek(Number(e.target.value))}
+                                className="text-lg font-black text-teal-700 bg-transparent focus:outline-none cursor-pointer"
+                            >
+                                {Array.from({ length: 32 }, (_, i) => (
+                                    <option key={i + 1} value={i + 1}>{t.weekLabel.replace('{n}', i + 1)}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* 統計面板 */}
+                        <div className="flex flex-wrap justify-center gap-3 md:gap-6">
+                            <div className="text-center"><div className="text-2xl font-black text-teal-600">{stats.present}</div><div className="text-[10px] font-bold text-teal-800">{t.statusPresent}</div></div>
+                            <div className="text-center"><div className="text-2xl font-black text-red-500">{stats.absent}</div><div className="text-[10px] font-bold text-red-800">{t.statusAbsent}</div></div>
+                            <div className="text-center"><div className="text-2xl font-black text-yellow-600">{stats.late}</div><div className="text-[10px] font-bold text-yellow-800">{t.statusLate}</div></div>
+                            <div className="text-center"><div className="text-2xl font-black text-orange-500">{stats.leaveEarly}</div><div className="text-[10px] font-bold text-orange-800">{t.statusLeaveEarly}</div></div>
+                            <div className="text-center"><div className="text-2xl font-black text-slate-500">{stats.excused}</div><div className="text-[10px] font-bold text-slate-700">{t.statusExcused}</div></div>
+                            <div className="text-center"><div className="text-2xl font-black text-indigo-500">{stats.noUniform}</div><div className="text-[10px] font-bold text-indigo-800">{t.noUniformBadge}</div></div>
+                        </div>
+
+                        <div className="absolute top-2 right-2 flex gap-2">
+                            <button onClick={exportToCSV} className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-teal-600 hover:bg-slate-50 shadow-sm flex items-center gap-1">
+                                <Download size={12} /> {t.exportCSV}
+                            </button>
+                            <button onClick={resetCurrentWeek} className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-500 hover:bg-slate-50 shadow-sm">
+                                {t.resetAttendance}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* 學生列表區 */}
+                    <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                        {students.map(s => {
+                            const studentData = currentWeekData[s.id] || { status: 'present', uniform: true };
+                            const { status, uniform } = studentData;
+                            
+                            return (
+                                <div key={s.id} className={`flex flex-col xl:flex-row justify-between items-center bg-white p-3 rounded-xl border transition-all gap-3 ${status === 'absent' ? 'border-red-200 bg-red-50/30' : (status === 'late' ? 'border-yellow-200 bg-yellow-50/30' : (status === 'leave_early' ? 'border-orange-200 bg-orange-50/30' : 'border-slate-200 shadow-sm'))}`}>
+                                    <div className="flex items-center gap-3 w-full xl:w-auto">
+                                        <div className="text-3xl filter drop-shadow-sm">{s.avatar}</div>
+                                        <div className="font-bold text-slate-700 text-lg truncate w-32">{s.name}</div>
+                                    </div>
+                                    
+                                    <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+                                        {/* 出缺勤狀態按鈕組 */}
+                                        <div className="flex bg-slate-100 p-1 rounded-lg">
+                                            <button onClick={() => handleStatusChange(s.id, 'present')} className={`px-2 py-1.5 rounded-md text-xs font-bold transition-all ${status === 'present' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t.statusPresent}</button>
+                                            <button onClick={() => handleStatusChange(s.id, 'absent')} className={`px-2 py-1.5 rounded-md text-xs font-bold transition-all ${status === 'absent' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t.statusAbsent}</button>
+                                            <button onClick={() => handleStatusChange(s.id, 'late')} className={`px-2 py-1.5 rounded-md text-xs font-bold transition-all ${status === 'late' ? 'bg-white text-yellow-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t.statusLate}</button>
+                                            <button onClick={() => handleStatusChange(s.id, 'leave_early')} className={`px-2 py-1.5 rounded-md text-xs font-bold transition-all ${status === 'leave_early' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t.statusLeaveEarly}</button>
+                                            <button onClick={() => handleStatusChange(s.id, 'excused')} className={`px-2 py-1.5 rounded-md text-xs font-bold transition-all ${status === 'excused' ? 'bg-white text-slate-500 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t.statusExcused}</button>
+                                        </div>
+
+                                        {/* 制服切換按鈕 (若缺席或請假則自動隱藏/禁用較合理，這裡保留顯示供調整) */}
+                                        <button 
+                                            onClick={() => handleStatusChange(s.id, status) /* Ensure record exists */ || handleUniformToggle(s.id)} 
+                                            disabled={status === 'absent' || status === 'excused'}
+                                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${status === 'absent' || status === 'excused' ? 'opacity-30 cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400' : (uniform ? 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100' : 'bg-red-50 border-red-200 text-red-500 hover:bg-red-100')}`}
+                                        >
+                                            <Shirt size={14} /> {uniform ? t.statusUniformYes : t.statusUniformNo}
+                                        </button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const ToolPicker = ({ students, isMuted, t, onClose }) => {
+            const [currentStudent, setCurrentStudent] = useState(null);
+            const [isRolling, setIsRolling] = useState(false);
+            const [history, setHistory] = useState([]);
+            const rollInterval = useRef(null);
+            const toggleRoll = useCallback(() => {
+                if (!students.length) return;
+                if (isRolling) {
+                    clearInterval(rollInterval.current);
+                    setIsRolling(false);
+                    const winner = students[Math.floor(Math.random() * students.length)];
+                    setCurrentStudent(winner);
+                    setHistory(prev => [winner, ...prev]);
+                    playGameSound('victory', isMuted);
+                } else {
+                    setIsRolling(true);
+                    playGameSound('roll', isMuted);
+                    rollInterval.current = setInterval(() => {
+                        const randomStudent = students[Math.floor(Math.random() * students.length)];
+                        setCurrentStudent(randomStudent);
+                    }, 50);
+                }
+            }, [students, isRolling, isMuted]);
+            useEffect(() => {
+                const handleKeyDown = (e) => { if (e.code === 'Space') { e.preventDefault(); toggleRoll(); } };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [toggleRoll]);
+            return (
+                <div className="flex flex-col items-center justify-center h-full w-full">
+                    <div className={`relative w-full max-w-md aspect-video bg-white rounded-3xl shadow-xl border-4 ${isRolling ? 'border-orange-400' : 'border-indigo-100'} flex flex-col items-center justify-center mb-8 overflow-hidden transition-colors duration-300`}>
+                        {currentStudent ? (
+                            <div className="text-center animate-in zoom-in duration-300">
+                                <div className={`text-9xl mb-4 ${isRolling ? 'animate-bounce' : 'animate-pop'}`}>{currentStudent.avatar}</div>
+                                <div className={`text-4xl font-black ${isRolling ? 'text-slate-400' : 'text-indigo-600'}`}>{currentStudent.name}</div>
+                            </div>
+                        ) : ( <div className="text-slate-300 font-bold text-3xl">READY?</div> )}
+                        {!isRolling && currentStudent && <div className="absolute top-0 left-0 w-full h-full pointer-events-none bg-yellow-400/10 animate-pulse"></div>}
+                    </div>
+                    <button onClick={toggleRoll} className={`px-12 py-4 rounded-full text-2xl font-black text-white shadow-lg transform transition-all active:scale-95 ${isRolling ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-600 hover:bg-indigo-700'}`}>{isRolling ? t.stopRoll : t.startRoll}</button>
+                    {history.length > 0 && (
+                        <div className="mt-8 flex gap-2 overflow-x-auto max-w-full p-2 bg-slate-50/50 rounded-xl">
+                            {history.map((s, i) => (
+                                <div key={i} className="flex items-center gap-1 bg-white px-3 py-1 rounded-full shadow-sm text-sm font-bold text-slate-600 border border-slate-100 whitespace-nowrap"><span>{s.avatar}</span> {s.name}</div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const ToolWheel = ({ students, isMuted, t }) => {
+            const canvasRef = useRef(null);
+            const [isSpinning, setIsSpinning] = useState(false);
+            const [winner, setWinner] = useState(null);
+            const currentRotation = useRef(0);
+            const colors = ['#FF9AA2', '#FFB7B2', '#FFDAC1', '#E2F0CB', '#B5EAD7', '#C7CEEA', '#90dbf4', '#f1c0e8'];
+            const [mode, setMode] = useState('students');
+            const [customText, setCustomText] = useState('');
+
+            const items = useMemo(() => {
+                if (mode === 'students') {
+                    return students;
+                } else {
+                    const lines = customText.split('\n').filter(line => line.trim() !== '');
+                    if (lines.length === 0) return []; 
+                    return lines.map((text, i) => ({
+                        id: `custom-${i}`,
+                        name: text.trim(),
+                        avatar: ['✨', '🎁', '🎯', '⭐', '🎈'][i % 5] 
+                    }));
+                }
+            }, [mode, students, customText]);
+
+            const drawWheel = useCallback(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const n = items.length;
+                
+                ctx.clearRect(0, 0, 500, 500);
+                
+                if (n === 0) {
+                    ctx.beginPath();
+                    ctx.arc(250, 250, 220, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#f1f5f9';
+                    ctx.fill();
+                    ctx.strokeStyle = '#cbd5e1';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    return;
+                }
+
+                const arcSize = (2 * Math.PI) / n;
+                const radius = 220;
+                const centerX = 250;
+                const centerY = 250;
+                
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(currentRotation.current);
+                ctx.translate(-centerX, -centerY);
+                for (let i = 0; i < n; i++) {
+                    const angle = i * arcSize;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, angle, angle + arcSize);
+                    ctx.fillStyle = colors[i % colors.length];
+                    ctx.fill();
+                    ctx.strokeStyle = "white";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.save();
+                    ctx.translate(centerX, centerY);
+                    ctx.rotate(angle + arcSize / 2);
+                    ctx.textAlign = "right";
+                    ctx.fillStyle = "#333";
+                    ctx.font = "bold 24px sans-serif";
+                    const text = items[i].name.length > 8 ? items[i].name.substring(0, 8) + '...' : items[i].name;
+                    const label = `${items[i].avatar} ${text}`;
+                    ctx.fillText(label, radius - 20, 10);
+                    ctx.restore();
+                }
+                ctx.restore();
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
+                ctx.fillStyle = "white";
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(centerX + 210, centerY);
+                ctx.lineTo(centerX + 240, centerY - 15);
+                ctx.lineTo(centerX + 240, centerY + 15);
+                ctx.fillStyle = "#ef4444";
+                ctx.fill();
+            }, [items]);
+
+            useEffect(() => { drawWheel(); }, [drawWheel]);
+
+            const spin = () => {
+                if (isSpinning || items.length < 2) return;
+                setIsSpinning(true);
+                setWinner(null);
+                const duration = 4000;
+                const startRotation = currentRotation.current;
+                const totalRotation = (5 * 2 * Math.PI) + (Math.random() * 2 * Math.PI);
+                const startTime = performance.now();
+                const animate = (time) => {
+                    const elapsed = time - startTime;
+                    if (elapsed < duration) {
+                        const progress = elapsed / duration;
+                        const easeOut = 1 - Math.pow(1 - progress, 3);
+                        currentRotation.current = startRotation + (totalRotation * easeOut);
+                        drawWheel();
+                        requestAnimationFrame(animate);
+                    } else {
+                        currentRotation.current = startRotation + totalRotation;
+                        drawWheel();
+                        setIsSpinning(false);
+                        const n = items.length;
+                        const normalizedRotation = currentRotation.current % (2 * Math.PI);
+                        const arcSize = (2 * Math.PI) / n;
+                        let winningIndex = Math.floor(((2 * Math.PI - normalizedRotation) % (2 * Math.PI)) / arcSize);
+                        const winItem = items[winningIndex];
+                        setWinner(winItem);
+                        playGameSound('victory', isMuted);
+                    }
+                };
+                requestAnimationFrame(animate);
+            };
+
+            return (
+                <div className="flex flex-col md:flex-row h-full gap-4 items-center justify-center">
+                    <div className="flex flex-col items-center">
+                        <div className="relative w-[300px] h-[300px] md:w-[450px] md:h-[450px] mb-6">
+                             <div className="absolute top-1/2 right-[-20px] transform -translate-y-1/2 z-20 text-red-500 drop-shadow-md"><svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12l18-12v24z"/></svg></div>
+                             <canvas ref={canvasRef} width="500" height="500" className="w-full h-full rounded-full shadow-2xl border-4 border-white" />
+                        </div>
+                        {winner && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-3xl z-30 animate-in fade-in">
+                                <div className="bg-white p-6 rounded-2xl text-center shadow-2xl transform scale-110">
+                                    <div className="text-6xl mb-2 animate-bounce">{winner.avatar}</div>
+                                    <h3 className="text-3xl font-black text-indigo-600 mb-2">{winner.name}</h3>
+                                    <p className="text-slate-400 font-bold">{t.congrats}</p>
+                                    <button onClick={() => setWinner(null)} className="mt-4 px-6 py-2 bg-indigo-100 text-indigo-600 rounded-lg font-bold hover:bg-indigo-200">{t.pickAgain}</button>
+                                </div>
+                            </div>
+                        )}
+                        <button onClick={spin} disabled={isSpinning || items.length < 2} className="px-10 py-3 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100">{isSpinning ? t.spinning : t.spin}</button>
+                    </div>
+
+                    <div className="w-full md:w-64 flex flex-col bg-slate-50 p-4 rounded-xl border border-slate-200 h-full max-h-[500px]">
+                        <div className="flex bg-white rounded-lg p-1 shadow-sm border border-slate-200 mb-4">
+                            <button onClick={() => setMode('students')} className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${mode === 'students' ? 'bg-pink-100 text-pink-600' : 'text-slate-500 hover:bg-slate-50'}`}><User size={16} className="inline mr-1"/> {t.wheelModeStudents}</button>
+                            <button onClick={() => setMode('custom')} className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${mode === 'custom' ? 'bg-pink-100 text-pink-600' : 'text-slate-500 hover:bg-slate-50'}`}><List size={16} className="inline mr-1"/> {t.wheelModeCustom}</button>
+                        </div>
+                        {mode === 'custom' && (
+                            <div className="flex-1 flex flex-col">
+                                <textarea value={customText} onChange={(e) => setCustomText(e.target.value)} placeholder={t.wheelCustomPlaceholder} className="w-full flex-1 p-3 border border-slate-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-pink-400 bg-white" />
+                                <div className="mt-2 text-xs text-slate-400 text-right">{items.length} options</div>
+                            </div>
+                        )}
+                        {mode === 'students' && (
+                            <div className="flex-1 overflow-y-auto">
+                                <div className="text-xs text-slate-400 mb-2">{students.length} students loaded</div>
+                                <div className="flex flex-wrap gap-1">
+                                    {students.map(s => (
+                                        <span key={s.id} className="text-xs bg-white border border-slate-200 px-2 py-1 rounded-full text-slate-600">
+                                            {s.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const ToolGroups = ({ students, t, onAddPoints }) => {
+            const [groupCount, setGroupCount] = useState(2);
+            const [groups, setGroups] = useState([]);
+            const generate = () => {
+                if (students.length < 2) return;
+                const shuffled = [...students].sort(() => Math.random() - 0.5);
+                const newGroups = Array.from({ length: groupCount }, () => []);
+                shuffled.forEach((s, i) => { newGroups[i % groupCount].push(s); });
+                setGroups(newGroups);
+            };
+            return (
+                <div className="w-full h-full flex flex-col">
+                    <div className="flex justify-center items-center gap-4 mb-6 p-4 bg-indigo-50 rounded-xl">
+                        <span className="font-bold text-indigo-800">{t.groupCount}</span>
+                        <div className="flex items-center bg-white rounded-lg border border-indigo-200">
+                            <button onClick={() => setGroupCount(Math.max(2, groupCount - 1))} className="p-2 hover:bg-slate-50 text-indigo-600"><Minus size={16} /></button>
+                            <span className="w-8 text-center font-bold text-lg">{groupCount}</span>
+                            <button onClick={() => setGroupCount(Math.min(students.length, groupCount + 1))} className="p-2 hover:bg-slate-50 text-indigo-600"><Plus size={16} /></button>
+                        </div>
+                        <button onClick={generate} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-md flex items-center gap-2"><Shuffle size={16} /> {t.generateGroups}</button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
+                        {groups.map((group, i) => (
+                            <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                                <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+                                    <h3 className="font-bold text-lg text-slate-700">{t.groupName.replace('{n}', i + 1)} <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full ml-1">{group.length}</span></h3>
+                                    <button onClick={() => onAddPoints(group)} className="text-xs flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-bold"><Plus size={12} /> {t.groupAdd}</button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">{group.map(s => (<div key={s.id} className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md text-sm border border-slate-100"><span>{s.avatar}</span> {s.name}</div>))}</div>
+                            </div>
+                        ))}
+                        {groups.length === 0 && ( <div className="col-span-full text-center text-slate-400 py-10 italic">Click Generate to start</div> )}
+                    </div>
+                </div>
+            );
+        };
+
+        const ToolSeating = ({ students, t }) => {
+            const [positions, setPositions] = useState(() => {
+                const saved = localStorage.getItem('chineseClassSeating');
+                return saved ? JSON.parse(saved) : {};
+            });
+            const [draggingId, setDraggingId] = useState(null);
+            const containerRef = useRef(null);
+
+            useEffect(() => {
+                if (Object.keys(positions).length === 0 && students.length > 0) {
+                    autoGrid();
+                }
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('chineseClassSeating', JSON.stringify(positions));
+            }, [positions]);
+
+            const handleMouseDown = (e, id) => { setDraggingId(id); };
+
+            const handleMouseMove = (e) => {
+                if (!draggingId || !containerRef.current) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const x = ((clientX - rect.left) / rect.width) * 100;
+                const y = ((clientY - rect.top) / rect.height) * 100;
+                const clampedX = Math.max(0, Math.min(95, x));
+                const clampedY = Math.max(0, Math.min(90, y));
+                setPositions(prev => ({ ...prev, [draggingId]: { x: clampedX, y: clampedY } }));
+            };
+
+            const handleMouseUp = () => { setDraggingId(null); };
+
+            const autoGrid = () => {
+                const newPos = {};
+                const cols = Math.ceil(Math.sqrt(students.length));
+                students.forEach((s, i) => {
+                    const col = i % cols;
+                    const row = Math.floor(i / cols);
+                    newPos[s.id] = { x: 5 + col * 12, y: 5 + row * 15 };
+                });
+                setPositions(newPos);
+            };
+
+            const autoGroups = () => {
+                const newPos = {};
+                const groupCount = 4;
+                const shuffled = [...students].sort(() => Math.random() - 0.5);
+                shuffled.forEach((s, i) => {
+                    const groupIndex = i % groupCount;
+                    const itemInGroup = Math.floor(i / groupCount);
+                    const cx = (groupIndex % 2) * 50 + 25; 
+                    const cy = Math.floor(groupIndex / 2) * 45 + 25;
+                    const offsetX = (itemInGroup % 3) * 10 - 10; 
+                    const offsetY = Math.floor(itemInGroup / 3) * 10 - 5;
+                    newPos[s.id] = { x: Math.max(0, Math.min(90, cx + offsetX)), y: Math.max(0, Math.min(90, cy + offsetY)) };
+                });
+                setPositions(newPos);
+            };
+
+            return (
+                <div className="flex flex-col h-full w-full">
+                    <div className="flex justify-center gap-2 mb-4">
+                        <button onClick={autoGrid} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-indigo-100"><LayoutGrid size={14}/> {t.seatAutoGrid}</button>
+                        <button onClick={autoGroups} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-indigo-100"><Users size={14}/> {t.seatAutoGroup}</button>
+                        <button onClick={() => setPositions({})} className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-slate-200"><RotateCcw size={14}/> {t.seatReset}</button>
+                    </div>
+                    <div className="text-center text-xs text-slate-400 mb-2">{t.seatDragTip}</div>
+                    <div 
+                        ref={containerRef}
+                        className="flex-1 relative bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl overflow-hidden shadow-inner w-full min-h-[400px]"
+                        onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onTouchMove={handleMouseMove} onTouchEnd={handleMouseUp}
+                    >
+                        {students.map(s => {
+                            const pos = positions[s.id] || { x: 50, y: 50 }; 
+                            return (
+                                <div
+                                    key={s.id}
+                                    className="absolute flex flex-col items-center justify-center p-1 cursor-grab active:cursor-grabbing hover:scale-110 transition-transform"
+                                    style={{ left: `${pos.x}%`, top: `${pos.y}%`, touchAction: 'none' }}
+                                    onMouseDown={(e) => handleMouseDown(e, s.id)} onTouchStart={(e) => handleMouseDown(e, s.id)}
+                                >
+                                    <div className="text-3xl bg-white rounded-full p-1 shadow-md border border-slate-200 select-none">{s.avatar}</div>
+                                    <div className="text-xs font-bold bg-white/80 px-1 rounded text-slate-700 mt-1 shadow-sm whitespace-nowrap select-none">{s.name}</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        const ToolNoise = ({ t }) => {
+            const [isListening, setIsListening] = useState(false);
+            const [volume, setVolume] = useState(0);
+            const [threshold] = useState({ low: 60, high: 80 }); 
+            const [sensitivity, setSensitivity] = useState(1.5); 
+            const [loudSeconds, setLoudSeconds] = useState(0);
+            const [totalSeconds, setTotalSeconds] = useState(0);
+            
+            const volumeRef = useRef(0);
+            const sensitivityRef = useRef(sensitivity);
+            
+            const audioContextRef = useRef(null);
+            const analyserRef = useRef(null);
+            const sourceRef = useRef(null);
+            const rafRef = useRef(null);
+
+            useEffect(() => { sensitivityRef.current = sensitivity; }, [sensitivity]);
+
+            const formatTime = (secs) => {
+                const m = Math.floor(secs / 60);
+                const s = secs % 60;
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            };
+
+            const startListening = async () => {
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    alert("您的瀏覽器不支援音訊輸入，無法使用聲控儀。請確認您使用 https 連線。");
+                    return;
+                }
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioContextRef.current = new AudioContext();
+                    
+                    // 強制喚醒 AudioContext
+                    if (audioContextRef.current.state === 'suspended') {
+                        await audioContextRef.current.resume();
+                    }
+
+                    analyserRef.current = audioContextRef.current.createAnalyser();
+                    sourceRef.current = audioContextRef.current.createMediaStreamSource(stream);
+                    analyserRef.current.fftSize = 256;
+                    analyserRef.current.smoothingTimeConstant = 0.5;
+                    sourceRef.current.connect(analyserRef.current);
+                    setIsListening(true);
+                    updateVolume();
+                } catch (err) {
+                    console.warn('Microphone permission issue:', err); 
+                    alert(t.noisePermissionDenied);
+                }
+            };
+
+            const stopListening = () => {
+                if (rafRef.current) cancelAnimationFrame(rafRef.current);
+                if (sourceRef.current) {
+                    if (sourceRef.current.mediaStream) {
+                        sourceRef.current.mediaStream.getTracks().forEach(track => track.stop());
+                    }
+                    sourceRef.current.disconnect();
+                }
+                if (audioContextRef.current) { audioContextRef.current.close(); }
+                setIsListening(false);
+                setVolume(0);
+                volumeRef.current = 0;
+            };
+
+            const updateVolume = () => {
+                if (!analyserRef.current) return;
+                const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+                analyserRef.current.getByteFrequencyData(dataArray);
+                
+                let peak = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    if (dataArray[i] > peak) peak = dataArray[i];
+                }
+                
+                const scaled = Math.min(100, (peak / 255) * 100 * sensitivityRef.current);
+                setVolume(scaled);
+                volumeRef.current = scaled;
+                rafRef.current = requestAnimationFrame(updateVolume);
+            };
+
+            useEffect(() => {
+                let interval = null;
+                if (isListening) {
+                    interval = setInterval(() => {
+                        setTotalSeconds(s => s + 1);
+                        if (volumeRef.current > threshold.high) {
+                            setLoudSeconds(s => s + 1);
+                        }
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isListening, threshold]);
+
+            useEffect(() => { return () => stopListening(); }, []);
+
+            const getZoneColor = () => {
+                if (volume > threshold.high) return 'bg-red-500 shadow-red-200';
+                if (volume > threshold.low) return 'bg-yellow-400 shadow-yellow-200';
+                return 'bg-emerald-400 shadow-emerald-200';
+            };
+
+            const getZoneText = () => {
+                if (volume > threshold.high) return t.noiseZoneRed;
+                if (volume > threshold.low) return t.noiseZoneYellow;
+                return t.noiseZoneGreen;
+            };
+
+            return (
+                <div className="flex flex-col items-center w-full h-full p-4">
+                    <div className="flex-1 flex flex-col justify-end w-full max-w-xs bg-slate-100 rounded-3xl relative overflow-hidden shadow-inner border-4 border-slate-200 mb-6">
+                        <div className="absolute top-[20%] left-0 w-full border-t-2 border-dashed border-red-300 opacity-50 z-10"><span className="absolute right-2 -top-3 text-xs text-red-400 font-bold">MAX</span></div>
+                        <div className="absolute top-[40%] left-0 w-full border-t-2 border-dashed border-yellow-300 opacity-50 z-10"><span className="absolute right-2 -top-3 text-xs text-yellow-400 font-bold">WARN</span></div>
+                        <div className={`w-full transition-all duration-100 ease-linear ${getZoneColor()} shadow-[0_0_20px_rgba(0,0,0,0.2)]`} style={{ height: `${Math.max(5, volume)}%` }} ></div>
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none"> <span className={`text-4xl font-black drop-shadow-md ${volume > threshold.high ? 'text-white animate-pulse' : 'text-slate-500/50'}`}> {getZoneText()} </span> </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 w-full max-w-md mb-6">
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center">
+                            <div className="text-xs text-slate-400 font-bold uppercase mb-1">{t.noiseTimeTotal}</div>
+                            <div className="text-2xl font-mono font-bold text-slate-700">{formatTime(totalSeconds)}</div>
+                        </div>
+                        <div className={`p-3 rounded-xl border text-center transition-colors ${loudSeconds > 0 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-200'}`}>
+                            <div className="text-xs text-red-400 font-bold uppercase mb-1">{t.noiseTimeLoud}</div>
+                            <div className="text-2xl font-mono font-bold text-red-600">{formatTime(loudSeconds)}</div>
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-center gap-4 w-full max-w-md">
+                        <div className="flex items-center gap-2 w-full">
+                            <span className="text-xs font-bold text-slate-400 whitespace-nowrap">{t.noiseSensitivity}</span>
+                            <input type="range" min="0.5" max="3" step="0.1" value={sensitivity} onChange={(e) => setSensitivity(parseFloat(e.target.value))} className="w-full accent-indigo-500 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" />
+                        </div>
+                        {!isListening ? ( <button onClick={startListening} className="flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700 transition-all active:scale-95" > <Mic size={20} /> {t.noiseStart} </button> ) : ( <button onClick={stopListening} className="flex items-center gap-2 px-8 py-3 bg-slate-100 text-slate-600 rounded-full font-bold hover:bg-slate-200 transition-all" > <MicOff size={20} /> {t.noiseStop} </button> )}
+                    </div>
+                </div>
+            );
+        };
+
+        const TimerWidget = ({ isMuted, t, onClose }) => {
+            const [mode, setMode] = useState('timer');
+            const [timeLeft, setTimeLeft] = useState(60); 
+            const [elapsedTime, setElapsedTime] = useState(0);
+            const [isActive, setIsActive] = useState(false);
+            const [initialTime, setInitialTime] = useState(60);
+            const [customMinutes, setCustomMinutes] = useState('');
+
+            useEffect(() => {
+                let interval = null;
+                if (isActive) {
+                    interval = setInterval(() => {
+                        if (mode === 'timer') {
+                            setTimeLeft(time => {
+                                if (time <= 1) {
+                                    clearInterval(interval);
+                                    setIsActive(false);
+                                    playGameSound('alarm', isMuted);
+                                    return 0;
+                                }
+                                return time - 1;
+                            });
+                        } else {
+                            setElapsedTime(time => time + 1);
+                        }
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isActive, mode, isMuted]);
+
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const setTime = (sec) => { 
+                setIsActive(false); 
+                setInitialTime(sec); 
+                setTimeLeft(sec); 
+            };
+
+            const handleCustomSubmit = (e) => {
+                e.preventDefault();
+                const mins = parseInt(customMinutes);
+                if (!isNaN(mins) && mins > 0) {
+                    setTime(mins * 60);
+                    setCustomMinutes('');
+                }
+            };
+
+            return (
+                <div className="fixed bottom-4 right-4 z-[70] bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 w-64 animate-in slide-in-from-bottom-10 fade-in">
+                    <div className="flex justify-between items-center mb-2">
+                        <div className="flex bg-slate-100 rounded-lg p-0.5">
+                            <button onClick={() => {setMode('timer'); setIsActive(false);}} className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${mode === 'timer' ? 'bg-white text-orange-500 shadow-sm' : 'text-slate-400'}`} > {t.timerModeCountDown} </button>
+                            <button onClick={() => {setMode('stopwatch'); setIsActive(false);}} className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${mode === 'stopwatch' ? 'bg-white text-blue-500 shadow-sm' : 'text-slate-400'}`} > {t.timerModeStopwatch} </button>
+                        </div>
+                        <button onClick={onClose} className="text-slate-300 hover:text-slate-500 ml-2"><X size={16}/></button>
+                    </div>
+                    <div className={`text-5xl font-mono font-black text-center mb-2 ${mode === 'timer' && timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : 'text-slate-700'}`}>
+                        {formatTime(mode === 'timer' ? timeLeft : elapsedTime)}
+                    </div>
+                    {mode === 'timer' && (
+                        <>
+                            <div className="grid grid-cols-4 gap-1 mb-2">
+                                {[60, 180, 300, 600].map(s => ( <button key={s} onClick={() => setTime(s)} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 py-1 rounded font-bold">{Math.floor(s/60)}m</button> ))}
+                            </div>
+                            <form onSubmit={handleCustomSubmit} className="flex gap-1 mb-4">
+                                <input type="number" min="1" max="999" value={customMinutes} onChange={(e) => setCustomMinutes(e.target.value)} placeholder={t.timerCustom} className="flex-1 px-2 py-1 text-xs border border-slate-200 rounded-lg focus:outline-none focus:border-orange-400" />
+                                <button type="submit" className="px-3 py-1 bg-orange-100 text-orange-600 text-xs font-bold rounded-lg hover:bg-orange-200">{t.timerSet}</button>
+                            </form>
+                        </>
+                    )}
+                    <div className="flex gap-2 mt-2">
+                        <button onClick={() => setIsActive(!isActive)} className={`flex-1 py-2 rounded-lg font-bold text-white flex items-center justify-center gap-1 ${isActive ? 'bg-yellow-500 hover:bg-yellow-600' : (mode === 'timer' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600')}`} >
+                            {isActive ? <><StopCircle size={16}/> {t.timerPause}</> : <><Play size={16}/> {t.timerStart}</>}
+                        </button>
+                        <button onClick={() => { setIsActive(false); mode === 'timer' ? setTimeLeft(initialTime) : setElapsedTime(0); }} className="px-3 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200" >
+                            <RotateCcw size={18} />
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        function App() {
+          const [students, setStudents] = useState(() => {
+            const saved = localStorage.getItem('chineseClassData');
+            return saved ? JSON.parse(saved) : [
+              { id: 1, name: 'Student A', avatar: '🐲', points: 0 },
+              { id: 2, name: 'Student B', avatar: '🐰', points: 0 },
+              { id: 3, name: 'Student C', avatar: '🐼', points: 0 },
+            ];
+          });
+
+          const [newName, setNewName] = useState('');
+          const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0].icon);
+          const [showAddForm, setShowAddForm] = useState(false);
+          const [isMuted, setIsMuted] = useState(false);
+          const [editingStudent, setEditingStudent] = useState(null);
+          const [viewingStudent, setViewingStudent] = useState(null); 
+          const [showRain, setShowRain] = useState(false); 
+          const [showThunder, setShowThunder] = useState(false);
+          const [showSun, setShowSun] = useState(false); 
+          const [shakeScreen, setShakeScreen] = useState(false); 
+          const [lang, setLang] = useState('zh-TW'); 
+          const [wakeLock, setWakeLock] = useState(null);
+          
+          const [activeTool, setActiveTool] = useState(null); 
+          const [showTimer, setShowTimer] = useState(false);
+          const [showAttentionMenu, setShowAttentionMenu] = useState(false); 
+          const [attentionEffect, setAttentionEffect] = useState(null); 
+          
+          const [currentWeek, setCurrentWeek] = useState(() => {
+            return parseInt(localStorage.getItem('chineseClassCurrentWeek') || '1');
+          });
+
+          const [attendanceRecord, setAttendanceRecord] = useState(() => {
+            const saved = localStorage.getItem('chineseClassAttendanceRecord');
+            if (saved && !saved.includes('{"1":') && !saved.includes('{}') && Object.keys(JSON.parse(saved)).length > 0 && typeof Object.values(JSON.parse(saved))[0] === 'string') {
+                return {};
+            }
+            return saved ? JSON.parse(saved) : {};
+          });
+
+          const [confirmAction, setConfirmAction] = useState(null); 
+
+          const [customTitle, setCustomTitle] = useState(() => localStorage.getItem('chineseClassTitle') || '');
+          const [isEditingTitle, setIsEditingTitle] = useState(false);
+          const [tempTitle, setTempTitle] = useState('');
+
+          const [customSubtitle, setCustomSubtitle] = useState(() => localStorage.getItem('chineseClassSubtitle') || '');
+          const [isEditingSubtitle, setIsEditingSubtitle] = useState(false);
+          const [tempSubtitle, setTempSubtitle] = useState('');
+
+          const [isBatchMode, setIsBatchMode] = useState(false);
+          const [batchNames, setBatchNames] = useState('');
+
+          const [classGoal, setClassGoal] = useState(() => parseInt(localStorage.getItem('chineseClassGoal') || '100'));
+          const [classManualPoints, setClassManualPoints] = useState(() => parseInt(localStorage.getItem('chineseClassManualPoints') || '0'));
+          const [rewardName, setRewardName] = useState(() => localStorage.getItem('chineseClassReward') || 'Movie day');
+          
+          const [isEditingGoal, setIsEditingGoal] = useState(false);
+          const [tempGoal, setTempGoal] = useState(classGoal);
+          const [isEditingReward, setIsEditingReward] = useState(false);
+          const [tempReward, setTempReward] = useState(rewardName);
+
+          const [showCelebration, setShowCelebration] = useState(false);
+          const prevProgressRef = useRef(0);
+
+          const totalStudentPoints = students.reduce((acc, curr) => acc + curr.points, 0);
+          const totalPoints = classManualPoints;
+          const progressPercentage = Math.min((classGoal > 0 ? totalPoints / classGoal : 0) * 100, 100);
+          
+          const t = TRANSLATIONS[lang];
+
+          useEffect(() => localStorage.setItem('chineseClassData', JSON.stringify(students)), [students]);
+          useEffect(() => localStorage.setItem('chineseClassAttendanceRecord', JSON.stringify(attendanceRecord)), [attendanceRecord]);
+          useEffect(() => localStorage.setItem('chineseClassCurrentWeek', currentWeek.toString()), [currentWeek]);
+          useEffect(() => localStorage.setItem('chineseClassGoal', classGoal.toString()), [classGoal]);
+          useEffect(() => localStorage.setItem('chineseClassReward', rewardName), [rewardName]);
+          useEffect(() => localStorage.setItem('chineseClassManualPoints', classManualPoints.toString()), [classManualPoints]);
+          useEffect(() => localStorage.setItem('chineseClassTitle', customTitle), [customTitle]);
+          useEffect(() => localStorage.setItem('chineseClassSubtitle', customSubtitle), [customSubtitle]);
+
+          useEffect(() => {
+            if (prevProgressRef.current < 100 && progressPercentage >= 100) {
+              setShowCelebration(true);
+              playGameSound('victory', isMuted);
+            }
+            prevProgressRef.current = progressPercentage;
+          }, [progressPercentage, isMuted]);
+
+          const toggleWakeLock = async () => {
+              if (!('wakeLock' in navigator)) {
+                  alert(lang === 'en' ? 'Browser does not support Wake Lock' : '瀏覽器不支援螢幕常亮功能');
+                  return;
+              }
+              try {
+                  if (wakeLock === null) {
+                      const lock = await navigator.wakeLock.request('screen');
+                      setWakeLock(lock);
+                  } else {
+                      await wakeLock.release();
+                      setWakeLock(null);
+                  }
+              } catch (err) {
+                  if (err.name === 'NotAllowedError') {
+                      const msg = lang === 'en' ? 'Wake Lock not allowed by browser policy.' : '無法啟用螢幕常亮：瀏覽器權限限制。';
+                      alert(msg);
+                  } else {
+                      console.error(err);
+                      alert('Wake Lock failed');
+                  }
+                  setWakeLock(null);
+              }
+          };
+
+          const toggleLanguage = () => {
+            if (lang === 'zh-TW') setLang('zh-CN');
+            else if (lang === 'zh-CN') setLang('en');
+            else setLang('zh-TW');
+          };
+
+          const getLangIcon = () => {
+            if (lang === 'zh-TW') return '繁';
+            if (lang === 'zh-CN') return '简';
+            return 'EN';
+          };
+
+          const saveTitle = () => { setCustomTitle(tempTitle); setIsEditingTitle(false); playGameSound('success', isMuted); };
+          const saveSubtitle = () => { setCustomSubtitle(tempSubtitle); setIsEditingSubtitle(false); playGameSound('success', isMuted); };
+
+          const triggerAttention = (type) => {
+              setShowAttentionMenu(false);
+              setAttentionEffect(type);
+              playGameSound(type, isMuted);
+          };
+
+          const handleAddStudent = (e) => { e.preventDefault(); if (!newName.trim()) return; const newStudent = { id: Date.now(), name: newName, avatar: selectedAvatar, points: 0 }; setStudents([...students, newStudent]); setNewName(''); setShowAddForm(false); playGameSound('success', isMuted); };
+          const handleBatchImport = (e) => { e.preventDefault(); if (!batchNames.trim()) return; const names = batchNames.split(/[\n,，]+/).map(n => n.trim()).filter(n => n); if (names.length === 0) return; const newStudents = names.map((name, index) => ({ id: Date.now() + index, name: name, avatar: AVATARS[Math.floor(Math.random() * AVATARS.length)].icon, points: 0 })); setStudents(prev => [...prev, ...newStudents]); setBatchNames(''); setShowAddForm(false); setIsBatchMode(false); playGameSound('success', isMuted); };
+          const handleDeleteStudent = (id) => { setConfirmAction({ message: t.confirmDelete, action: () => { setStudents(prev => prev.filter(s => s.id !== id)); setConfirmAction(null); } }); };
+          const updatePoints = (id, delta) => { setStudents(students.map(student => { if (student.id === id) { return { ...student, points: Math.max(0, student.points + delta) }; } return student; })); };
+          const handleGroupAddPoints = (groupMembers) => { const ids = groupMembers.map(m => m.id); setStudents(prev => prev.map(s => { if (ids.includes(s.id)) { return { ...s, points: s.points + 1 }; } return s; })); playGameSound('success', isMuted); setShowRain(true); setTimeout(() => { setShowRain(false); setShowSun(true); setTimeout(() => setShowSun(false), 2000); }, 2000); };
+          const updateClassManualPoints = (delta) => { if (delta > 0) { playGameSound('success', isMuted); setShowRain(true); playGameSound('rain', isMuted); setTimeout(() => { setShowRain(false); setShowSun(true); setTimeout(() => setShowSun(false), 3000); }, 4000); } else { setShowThunder(true); playGameSound('wind', isMuted); setTimeout(() => { setShakeScreen(true); playGameSound('thunder', isMuted); }, 1200); setTimeout(() => { setShowThunder(false); setShakeScreen(false); }, 3500); } setClassManualPoints(prev => Math.max(0, prev + delta)); };
+          const handleUpdateStudent = (updatedStudent) => { setStudents(students.map(s => s.id === updatedStudent.id ? updatedStudent : s)); setEditingStudent(null); };
+          const resetAllPoints = () => { setConfirmAction({ message: t.confirmReset, action: () => { setStudents(prev => prev.map(s => ({ ...s, points: 0 }))); setClassManualPoints(0); setConfirmAction(null); } }); };
+          const saveGoal = () => { const val = parseInt(tempGoal); if (val > 0) { setClassGoal(val); setIsEditingGoal(false); playGameSound('success', isMuted); } };
+          const saveReward = () => { if (tempReward.trim()) { setRewardName(tempReward); setIsEditingReward(false); playGameSound('success', isMuted); } };
+
+          // --- Animations & Styles ---
+          const styles = `
+            @keyframes bell-swing { 0% { transform: rotate(0); } 25% { transform: rotate(15deg); } 50% { transform: rotate(0); } 75% { transform: rotate(-15deg); } 100% { transform: rotate(0); } }
+            .animate-bell-swing { animation: bell-swing 0.5s ease-in-out infinite; }
+            @keyframes ufo-hover { 0% { transform: translateY(0) rotate(0); } 25% { transform: translateY(-20px) rotate(-5deg); } 75% { transform: translateY(20px) rotate(5deg); } 100% { transform: translateY(0) rotate(0); } }
+            .animate-ufo-hover { animation: ufo-hover 2s ease-in-out infinite; }
+            @keyframes beam-pulse { 0% { opacity: 0.3; height: 0; } 50% { opacity: 0.8; height: 300px; } 100% { opacity: 0.3; height: 300px; } }
+            .animate-beam { animation: beam-pulse 0.5s forwards; }
+            @keyframes rooster-crow { 0% { transform: scale(1); } 50% { transform: scale(1.2) translateY(-20px); } 100% { transform: scale(1); } }
+            .animate-rooster-crow { animation: rooster-crow 0.5s infinite; }
+            @keyframes float-up { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 20% { transform: translate(-50%, -100%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -250%); opacity: 0; } }
+            .animate-float-up { animation: float-up 0.8s ease-out forwards; }
+            @keyframes bounce-happy { 0%, 100% { transform: translateY(0) scale(1); } 25% { transform: translateY(-15px) scale(1.3) rotate(-10deg); } 50% { transform: translateY(0) scale(1.1) rotate(10deg); } 75% { transform: translateY(-5px) scale(1.05) rotate(-5deg); } }
+            .animate-bounce-happy { animation: bounce-happy 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+            @keyframes shake-sad { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-6px) rotate(-6deg); } 40% { transform: translateX(6px) rotate(6deg); } 60% { transform: translateX(-3px) rotate(-3deg); } 80% { transform: translateX(3px) rotate(3deg); } }
+            .animate-shake-sad { animation: shake-sad 0.5s ease-in-out; }
+            @keyframes shake-screen { 0%, 100% { transform: translateX(0); } 10% { transform: translateX(-15px) rotate(-2deg); } 30% { transform: translateX(15px) rotate(2deg); } 50% { transform: translateX(-15px); } 70% { transform: translateX(15px); } }
+            .animate-shake-screen { animation: shake-screen 0.5s ease-in-out; }
+            @keyframes confetti-fall { 0% { transform: translateY(-10px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+            .animate-confetti-fall { animation: confetti-fall 4s linear forwards; }
+            @keyframes rain-fall { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
+            .animate-rain-fall { animation: rain-fall linear infinite; }
+            @keyframes storm-fall { 0% { transform: translateY(0) translateX(0); } 100% { transform: translateY(120vh) translateX(-20vh); } }
+            .animate-storm-fall { animation: storm-fall linear infinite; }
+            @keyframes darken-sky { from { opacity: 0; } to { opacity: 1; } }
+            .animate-darken-sky { animation: darken-sky 0.8s ease-out forwards; }
+            @keyframes cloud-move-right { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 0.8; } }
+            .animate-cloud-move-right { animation: cloud-move-right 1s ease-out forwards; }
+            @keyframes cloud-move-left { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 0.8; } }
+            .animate-cloud-move-left { animation: cloud-move-left 1s ease-out forwards; }
+            @keyframes tornado-enter { 0% { transform: scale(0) rotate(0deg); opacity: 0; } 100% { transform: scale(1) rotate(720deg); opacity: 0.9; } }
+            .animate-tornado-enter { animation: tornado-enter 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+            @keyframes lightning-flash-triple { 0% { background-color: rgba(255,255,255,0); } 10% { background-color: rgba(255,255,255,0.8); } 20% { background-color: rgba(255,255,255,0.1); } 40% { background-color: rgba(255,255,255,0.9); } 60% { background-color: rgba(255,255,255,0.2); } 70% { background-color: rgba(255,255,255,0.6); } 100% { background-color: rgba(255,255,255,0); } }
+            .animate-lightning-flash-triple { animation: lightning-flash-triple 1.2s ease-out 1.2s forwards; }
+            @keyframes strike-triple { 0% { opacity: 0; transform: scale(0.8); } 10% { opacity: 1; transform: scale(1); } 20% { opacity: 0; } 40% { opacity: 1; transform: scale(1.2); } 50% { opacity: 0; } 70% { opacity: 1; transform: scale(0.9); } 80% { opacity: 0; } 100% { opacity: 0; } }
+            .animate-strike-triple { animation: strike-triple 1.2s linear 1.2s forwards; }
+            @keyframes flash-random { 0%, 100% { opacity: 0; } 50% { opacity: 0.6; } }
+            .animate-flash-background-1 { animation: flash-random 0.3s linear 1.3s forwards; }
+            .animate-flash-background-2 { animation: flash-random 0.4s linear 1.6s forwards; }
+            .animate-flash-background-3 { animation: flash-random 0.2s linear 1.9s forwards; }
+            @keyframes bounce-in { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+            .animate-bounce-in { animation: bounce-in 0.6s cubic-bezier(0.215, 0.610, 0.355, 1.000) both; }
+            @keyframes fly-right { 0% { transform: translateX(0) translateY(0); } 25% { transform: translateX(30vw) translateY(-20px); } 50% { transform: translateX(60vw) translateY(10px); } 75% { transform: translateX(120vw) translateY(-10px); } 100% { transform: translateX(180vw) translateY(0); } }
+            .animate-fly-right { animation: fly-right 4s linear forwards; }
+            @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            .animate-spin-slow { animation: spin-slow 10s linear infinite; }
+          `;
+
+          return (
+            <div className={`min-h-screen bg-orange-50 font-sans text-slate-800 p-4 md:p-8 overflow-hidden ${shakeScreen ? 'animate-shake-screen' : ''} flex flex-col`}>
+              <style>{styles}</style>
+              
+              {showRain && <Rain />}
+              {showThunder && <Thunder />}
+              {showSun && <SunAndBirds isMuted={isMuted} />}
+
+              {/* Floating Timer */}
+              {showTimer && <TimerWidget isMuted={isMuted} t={t} onClose={() => setShowTimer(false)} />}
+
+              {/* Attention Effects Overlay */}
+              {attentionEffect && <AttentionOverlay type={attentionEffect} onClose={() => setAttentionEffect(null)} />}
+
+              {/* Custom Confirmation Modal */}
+              {confirmAction && (
+                <div className="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center transform scale-100 transition-transform">
+                        <div className="mx-auto bg-orange-100 w-12 h-12 rounded-full flex items-center justify-center mb-4"><AlertTriangle className="text-orange-600" size={24} /></div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-6">{confirmAction.message}</h3>
+                        <div className="flex gap-3 justify-center">
+                            <button onClick={() => setConfirmAction(null)} className="px-6 py-2.5 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-colors">{t.cancel}</button>
+                            <button onClick={confirmAction.action} className="px-6 py-2.5 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 shadow-md transition-colors">{t.confirm}</button>
+                        </div>
+                    </div>
+                </div>
+              )}
+
+              {/* Student Details Modal (View Points) */}
+              {viewingStudent && (
+                  <StudentDetailModal student={viewingStudent} onClose={() => setViewingStudent(null)} lang={lang} />
+              )}
+
+              {/* Tool Modal (Picker/Wheel/Groups/Seating/Noise/Attendance) */}
+              {activeTool && (
+                  <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+                      <div className="bg-white w-full max-w-4xl h-[80vh] rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+                          <div className="p-4 bg-indigo-50 border-b border-indigo-100 flex justify-between items-center">
+                              <h2 className="text-xl font-black text-indigo-700 flex items-center gap-2">
+                                  {activeTool === 'picker' && <><Dices/> {t.toolPicker}</>}
+                                  {activeTool === 'wheel' && <><Disc/> {t.toolWheel}</>}
+                                  {activeTool === 'groups' && <><Users/> {t.toolGroups}</>}
+                                  {activeTool === 'seating' && <><Armchair/> {t.toolSeating}</>}
+                                  {activeTool === 'attendance' && <><ClipboardList/> {t.toolAttendance}</>}
+                                  {activeTool === 'noise' && <><Mic/> {t.toolNoise}</>}
+                              </h2>
+                              <button onClick={() => setActiveTool(null)} className="p-2 hover:bg-white rounded-full text-slate-500 transition-colors"><X/></button>
+                          </div>
+                          <div className="flex-1 overflow-auto p-6 bg-slate-50 relative">
+                              {activeTool === 'picker' && <ToolPicker students={students} isMuted={isMuted} t={t} onClose={() => setActiveTool(null)} />}
+                              {activeTool === 'wheel' && <ToolWheel students={students} isMuted={isMuted} t={t} />}
+                              {activeTool === 'groups' && <ToolGroups students={students} t={t} onAddPoints={handleGroupAddPoints} />}
+                              {activeTool === 'seating' && <ToolSeating students={students} t={t} />}
+                              {activeTool === 'attendance' && <ToolAttendance students={students} attendanceRecord={attendanceRecord} setAttendanceRecord={setAttendanceRecord} currentWeek={currentWeek} setCurrentWeek={setCurrentWeek} t={t} />}
+                              {activeTool === 'noise' && <ToolNoise t={t} />}
+                          </div>
+                      </div>
+                  </div>
+              )}
+
+              {/* Celebration Overlay */}
+              {showCelebration && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                  <Confetti />
+                  <div className="bg-white p-8 rounded-3xl shadow-2xl text-center max-w-lg mx-4 transform animate-bounce-in relative overflow-hidden border-4 border-yellow-400">
+                     <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500"></div>
+                     <PartyPopper size={64} className="mx-auto text-yellow-500 mb-4 animate-bounce" />
+                     <h2 className="text-4xl font-black text-orange-600 mb-4">🎉 {t.celebrationTitle} 🎉</h2>
+                     <p className="text-xl text-slate-600 mb-6 font-bold">{t.celebrationBody}</p>
+                     <div className="mb-8">
+                        <p className="text-sm text-slate-400 mb-2 uppercase tracking-wider font-bold">{t.rewardLabel}</p>
+                        <div className="text-3xl font-black text-pink-600 border-2 border-pink-200 bg-pink-50 p-6 rounded-2xl shadow-sm rotate-1">{rewardName}</div>
+                     </div>
+                     <button onClick={() => setShowCelebration(false)} className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-4 rounded-xl font-bold text-xl hover:from-orange-600 hover:to-red-600 shadow-lg transform transition hover:scale-105">{t.celebrationBtn}</button>
+                  </div>
+                </div>
+              )}
+
+              {editingStudent && <EditModal student={editingStudent} onClose={() => setEditingStudent(null)} onSave={handleUpdateStudent} lang={lang} />}
+
+              <header className="max-w-6xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-center gap-4 relative z-20 w-full">
+                <div className="flex flex-col gap-2 w-full md:w-auto">
+                  <div className="flex items-center gap-2">
+                     <span className="text-4xl">🏫</span> 
+                     {isEditingTitle ? (
+                         <div className="flex items-center gap-1 animate-in fade-in zoom-in w-full">
+                            <input type="text" value={tempTitle} onChange={(e) => setTempTitle(e.target.value)} className="p-1 border-2 border-orange-300 rounded-lg text-2xl md:text-3xl font-bold text-orange-600 focus:outline-none focus:border-orange-500 w-full md:w-auto" autoFocus onKeyDown={(e) => e.key === 'Enter' && saveTitle()} />
+                            <button onClick={saveTitle} className="p-1 bg-green-100 text-green-600 rounded-lg hover:bg-green-200"><Check size={24} /></button>
+                            <button onClick={() => setIsEditingTitle(false)} className="p-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200"><X size={24} /></button>
+                         </div>
+                     ) : (
+                         <h1 className="text-3xl md:text-4xl font-bold text-orange-600 flex items-center gap-2 cursor-pointer group border-b-2 border-transparent hover:border-orange-200 transition-all" onClick={() => { setTempTitle(customTitle || t.defaultTitle); setIsEditingTitle(true); }}>
+                            {customTitle || t.defaultTitle}
+                            <Pencil size={20} className="text-orange-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                         </h1>
+                     )}
+                  </div>
+                  
+                  <div className="text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                    {isEditingSubtitle ? (
+                         <div className="flex items-center gap-1 animate-in fade-in zoom-in w-full md:w-auto">
+                            <input type="text" value={tempSubtitle} onChange={(e) => setTempSubtitle(e.target.value)} className="p-1 border-2 border-slate-300 rounded-lg text-base text-slate-600 focus:outline-none focus:border-orange-400 w-full md:min-w-[300px]" autoFocus onKeyDown={(e) => e.key === 'Enter' && saveSubtitle()} />
+                            <button onClick={saveSubtitle} className="p-1 bg-green-100 text-green-600 rounded-lg hover:bg-green-200"><Check size={18} /></button>
+                            <button onClick={() => setIsEditingSubtitle(false)} className="p-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200"><X size={18} /></button>
+                         </div>
+                    ) : (
+                        <p className="flex items-center gap-2 cursor-pointer group border-b border-transparent hover:border-slate-300 transition-all" onClick={() => { setTempSubtitle(customSubtitle || t.defaultSubtitle); setIsEditingSubtitle(true); }}>
+                            {customSubtitle || t.defaultSubtitle}
+                            <Pencil size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex gap-2 items-center flex-wrap justify-center mt-4 md:mt-0">
+                    <div className="flex bg-white rounded-full p-1 border border-slate-200 shadow-sm mr-2 relative">
+                        <button onClick={() => setActiveTool('picker')} className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-full transition-colors" title={t.toolPicker}><Dices size={20}/></button>
+                        <button onClick={() => setActiveTool('wheel')} className="p-2 text-pink-500 hover:bg-pink-50 rounded-full transition-colors" title={t.toolWheel}><Disc size={20}/></button>
+                        <button onClick={() => setActiveTool('groups')} className="p-2 text-blue-500 hover:bg-blue-50 rounded-full transition-colors" title={t.toolGroups}><Users size={20}/></button>
+                        <button onClick={() => setActiveTool('seating')} className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-full transition-colors" title={t.toolSeating}><Armchair size={20}/></button>
+                        <button onClick={() => setActiveTool('attendance')} className="p-2 text-teal-500 hover:bg-teal-50 rounded-full transition-colors" title={t.toolAttendance}><ClipboardList size={20}/></button>
+                        <button onClick={() => setActiveTool('noise')} className="p-2 text-rose-500 hover:bg-rose-50 rounded-full transition-colors" title={t.toolNoise}><Mic size={20}/></button>
+                        <button onClick={() => setShowTimer(!showTimer)} className="p-2 text-orange-500 hover:bg-orange-50 rounded-full transition-colors" title={t.toolTimer}><Timer size={20}/></button>
+                        
+                        <div className="relative">
+                            <button onClick={() => setShowAttentionMenu(!showAttentionMenu)} className="p-2 text-red-500 hover:bg-red-50 rounded-full transition-colors" title={t.toolAttention}><Bell size={20}/></button>
+                            {showAttentionMenu && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowAttentionMenu(false)}></div>
+                                    <div className="absolute top-12 right-0 bg-white rounded-xl shadow-xl border border-slate-100 p-2 z-50 w-40 flex flex-col gap-1 animate-in zoom-in-95 duration-200 origin-top-right">
+                                        <button onClick={() => triggerAttention('school-bell')} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg text-slate-700 font-bold text-sm text-left"><Bell size={16} className="text-indigo-500"/> {t.attnBell}</button>
+                                        <button onClick={() => triggerAttention('rooster')} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg text-slate-700 font-bold text-sm text-left"><Sunrise size={16} className="text-orange-500"/> {t.attnRooster}</button>
+                                        <button onClick={() => triggerAttention('ufo')} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg text-slate-700 font-bold text-sm text-left"><Rocket size={16} className="text-green-500"/> {t.attnUFO}</button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    <button onClick={toggleWakeLock} className={`p-2 rounded-full transition-colors mr-2 ${wakeLock ? 'bg-yellow-100 text-yellow-600' : 'bg-slate-100 text-slate-400'}`} title={wakeLock ? t.wakeLockOn : t.wakeLockOff}><MonitorPlay size={20} /></button>
+                    <button onClick={toggleLanguage} className="flex items-center gap-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors font-bold mr-2" title="Switch Language"><Globe size={18} /> {getLangIcon()}</button>
+                    <button onClick={() => setIsMuted(!isMuted)} className={`p-3 rounded-full transition-colors mr-2 ${isMuted ? 'bg-slate-200 text-slate-500' : 'bg-orange-100 text-orange-600'}`} title={isMuted ? t.unmute : t.mute}>{isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}</button>
+                    <button onClick={resetAllPoints} className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-200 text-slate-600 rounded-full hover:bg-slate-50 transition-colors shadow-sm font-bold"><RotateCcw size={18} /> {t.reset}</button>
+                    <button onClick={() => setShowAddForm(!showAddForm)} className="flex items-center gap-2 px-6 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition-colors shadow-lg font-bold"><UserPlus size={20} /> {t.addStudent}</button>
+                </div>
+              </header>
+
+              {/* Goal Dashboard */}
+              <div className="max-w-6xl mx-auto mb-16 bg-white p-6 rounded-2xl shadow-lg border-b-4 border-orange-200 relative z-10 w-full">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-4 gap-4">
+                  <div>
+                    <div className="flex flex-col mb-2">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Users className="text-orange-500" />
+                            <span className="font-bold text-lg text-slate-700">{t.totalEnergy}</span>
+                        </div>
+                        <div className="flex gap-2 text-xs text-slate-500 flex-wrap">
+                            <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-lg font-bold">👨‍🎓 {t.studentCount}{students.length}{t.studentCountUnit}</span>
+                            <span className="bg-slate-100 px-2 py-1 rounded-lg">⚡ {t.fromStudents}：{totalStudentPoints}</span>
+                            <span className="bg-slate-100 px-2 py-1 rounded-lg">🏫 {t.fromClass}：{classManualPoints}</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center bg-orange-50 rounded-lg p-1 border border-orange-100">
+                          <button onClick={() => updateClassManualPoints(-1)} className="p-2 text-red-400 hover:bg-red-100 hover:text-red-500 rounded-md transition-colors" title={t.classDeduct}><Minus size={18} strokeWidth={3} /></button>
+                          <span className="mx-2 font-bold text-slate-400 text-sm">Class</span>
+                          <button onClick={() => updateClassManualPoints(1)} className="p-2 text-green-500 hover:bg-green-100 hover:text-green-600 rounded-md transition-colors" title={t.classAdd}><Plus size={18} strokeWidth={3} /></button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-4xl font-black text-orange-600">{totalPoints}</span>
+                        <span className="text-slate-400 text-2xl">/</span>
+                        {isEditingGoal ? (
+                          <div className="flex items-center gap-1 animate-in fade-in zoom-in duration-200">
+                            <input type="number" value={tempGoal} onChange={(e) => setTempGoal(e.target.value)} className="w-20 p-1 border-2 border-orange-300 rounded-lg text-xl font-bold text-slate-700 focus:outline-none focus:border-orange-500" autoFocus onKeyDown={(e) => e.key === 'Enter' && saveGoal()} />
+                            <button onClick={saveGoal} className="p-1 bg-green-100 text-green-600 rounded-lg hover:bg-green-200"><Check size={20} /></button>
+                            <button onClick={() => setIsEditingGoal(false)} className="p-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200"><X size={20} /></button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 cursor-pointer group" onClick={() => { setTempGoal(classGoal); setIsEditingGoal(true); }}>
+                            <span className="text-3xl font-black text-slate-400 group-hover:text-orange-400 transition-colors border-b-2 border-dashed border-slate-300 group-hover:border-orange-300">{classGoal}</span>
+                            <span className="p-1.5 bg-slate-100 text-slate-400 rounded-full group-hover:bg-orange-100 group-hover:text-orange-500 transition-colors"><Settings size={14} /></span>
+                          </div>
+                        )}
+                        <span className="text-xl font-bold text-orange-600 ml-1">{t.points}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-full md:w-auto flex flex-col items-end">
+                     <div className="flex items-center gap-2 mb-1">
+                        <Gift size={16} className="text-pink-500" />
+                        <span className="font-bold text-sm text-slate-500">{t.currentReward}</span>
+                         {isEditingReward ? (
+                            <div className="flex items-center gap-1 animate-in fade-in zoom-in">
+                                <input type="text" value={tempReward} onChange={(e) => setTempReward(e.target.value)} className="w-40 p-1 border-2 border-pink-300 rounded-lg text-sm font-bold text-slate-700 focus:outline-none focus:border-pink-500" autoFocus placeholder={t.enterReward} onKeyDown={(e) => e.key === 'Enter' && saveReward()} />
+                                <button onClick={saveReward} className="p-1 bg-green-100 text-green-600 rounded-lg hover:bg-green-200"><Check size={16} /></button>
+                                <button onClick={() => setIsEditingReward(false)} className="p-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-slate-200"><X size={16} /></button>
+                            </div>
+                         ) : (
+                            <div className="flex items-center gap-2 cursor-pointer group hover:bg-slate-50 px-2 py-1 rounded-lg transition-colors" onClick={() => { setTempReward(rewardName); setIsEditingReward(true); }}>
+                                <span className="text-pink-600 font-bold text-lg border-b-2 border-dashed border-transparent group-hover:border-pink-300 transition-all">{rewardName}</span>
+                                <Pencil size={14} className="text-slate-300 group-hover:text-pink-400" />
+                            </div>
+                         )}
+                     </div>
+                  </div>
+                </div>
+
+                {/* Updated Progress Bar with Ticks & Emojis */}
+                <div className="relative w-full h-20 mt-8 mb-6"> 
+                    <div className="w-full bg-slate-100 h-6 rounded-full overflow-hidden shadow-inner relative z-10">
+                    <div 
+                        className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all duration-700 ease-out flex items-center justify-end px-2"
+                        style={{ width: `${progressPercentage}%` }}
+                    >
+                        {progressPercentage >= 100 && <span className="text-xs text-white font-bold animate-pulse">{t.goalReached}</span>}
+                    </div>
+                    </div>
+
+                    {RANK_STEPS.map((step) => {
+                        const position = step.points; 
+                        const isReached = progressPercentage >= position;
+                        
+                        return (
+                            <div 
+                            key={step.key} 
+                            className="absolute top-0 bottom-0 flex flex-col items-center pointer-events-none"
+                            style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
+                            >
+                            <div className={`h-6 w-0.5 z-20 absolute top-0 ${isReached ? 'bg-white/70' : 'bg-slate-300/50'}`}></div>
+                            <div 
+                                className={`mt-6 flex flex-col items-center transition-all duration-500 transform ${isReached ? 'opacity-100 scale-110 filter drop-shadow-sm' : 'opacity-40 grayscale scale-90'}`}
+                            >
+                                <div className="text-2xl md:text-3xl">{step.icon}</div>
+                                <div className="text-[10px] md:text-xs font-bold text-slate-500 mt-1 whitespace-nowrap bg-white/80 px-1 rounded">{t.ranks[step.key]}</div>
+                            </div>
+                            </div>
+                        );
+                    })}
+                </div>
+              </div>
+
+              {/* Add Student Form */}
+              {showAddForm && (
+                <div className="max-w-6xl mx-auto mb-8 bg-white p-6 rounded-2xl shadow-xl border-2 border-orange-300 animate-in fade-in slide-in-from-top-4 relative z-10 w-full">
+                  <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-bold text-lg flex items-center gap-2"><UserPlus className="text-orange-500" size={20}/> {isBatchMode ? t.batchImportTitle : t.welcomeNew}</h3>
+                      <div className="flex bg-slate-100 p-1 rounded-lg">
+                          <button onClick={() => setIsBatchMode(false)} className={`px-3 py-1 rounded-md text-sm font-bold transition-all flex items-center gap-1 ${!isBatchMode ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}><User size={14} /> {t.singleAdd}</button>
+                          <button onClick={() => setIsBatchMode(true)} className={`px-3 py-1 rounded-md text-sm font-bold transition-all flex items-center gap-1 ${isBatchMode ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}><FileText size={14} /> {t.batchImport}</button>
+                      </div>
+                  </div>
+                  {isBatchMode ? (
+                      <form onSubmit={handleBatchImport} className="space-y-4">
+                           <div>
+                            <label className="block text-sm font-medium text-slate-600 mb-1">{t.batchLabel}</label>
+                            <textarea value={batchNames} onChange={(e) => setBatchNames(e.target.value)} className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-orange-400 focus:outline-none text-lg h-32 leading-relaxed" placeholder={t.batchPlaceholder} autoFocus />
+                            <p className="text-xs text-slate-400 mt-2 flex items-center gap-1"><Zap size={12} className="text-yellow-500"/> {t.batchNote}</p>
+                          </div>
+                           <div className="flex gap-3 pt-2">
+                            <button type="submit" className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 shadow-md transition-colors flex items-center justify-center gap-2"><Save size={18} /> {t.startImport}</button>
+                            <button type="button" onClick={() => setShowAddForm(false)} className="px-6 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">{t.cancel}</button>
+                          </div>
+                      </form>
+                  ) : (
+                    <form onSubmit={handleAddStudent} className="space-y-4">
+                      <div><label className="block text-sm font-medium text-slate-600 mb-1">{t.nameLabel}</label><input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-orange-400 focus:outline-none text-lg" placeholder={t.namePlaceholder} autoFocus /></div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-600 mb-2">{t.selectAvatar}</label>
+                        <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto p-1">
+                          {AVATARS.map((av) => (
+                            <button key={av.name} type="button" onClick={() => setSelectedAvatar(av.icon)} className={`text-3xl p-3 rounded-xl transition-all transform hover:scale-110 ${selectedAvatar === av.icon ? 'bg-orange-100 ring-2 ring-orange-400 scale-110 shadow-sm' : 'bg-slate-50 hover:bg-slate-100'}`} title={av.name}>{av.icon}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-3 pt-2">
+                        <button type="submit" className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 shadow-md transition-colors">{t.joinClass}</button>
+                        <button type="button" onClick={() => setShowAddForm(false)} className="px-6 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">{t.cancel}</button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+
+              {/* Student Grid */}
+              <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 pb-20 relative z-10 w-full flex-grow content-start">
+                {students.map((student) => (
+                  <StudentCard 
+                    key={student.id} 
+                    student={student} 
+                    attendanceData={attendanceRecord[currentWeek]?.[student.id]} 
+                    onUpdatePoints={updatePoints} 
+                    onDelete={handleDeleteStudent} 
+                    onEdit={setEditingStudent} 
+                    onView={setViewingStudent} 
+                    isMuted={isMuted} 
+                    lang={lang} 
+                  />
+                ))}
+                {students.length === 0 && (
+                  <div className="col-span-full text-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl"><p className="text-lg mb-2">{t.noStudents}</p><p>{t.startClick}</p></div>
+                )}
+              </div>
+
+               <footer className="w-full text-center py-4 text-slate-400 text-sm font-medium relative z-10 mt-auto">{t.designBy}</footer>
+            </div>
+          );
+        }
+
+        const EditModal = ({ student, onClose, onSave, lang }) => {
+            const [name, setName] = useState(student.name);
+            const [avatar, setAvatar] = useState(student.avatar);
+            const t = TRANSLATIONS[lang];
+            const handleSubmit = (e) => { e.preventDefault(); onSave({ ...student, name, avatar }); };
+
+            return (
+                <div className="fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-orange-50"><h3 className="font-bold text-lg text-orange-700 flex items-center gap-2"><Pencil size={20} /> {t.editStudent}</h3><button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-200 transition-colors"><X size={24} /></button></div>
+                        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto">
+                            <div className="mb-6"><label className="block text-sm font-bold text-slate-600 mb-2">{t.nameLabel}</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full p-3 border-2 border-slate-200 rounded-xl focus:border-orange-400 focus:outline-none text-lg font-bold text-slate-700" autoFocus /></div>
+                            <div className="mb-6"><label className="block text-sm font-bold text-slate-600 mb-2">{t.changeAvatar}</label><div className="grid grid-cols-6 gap-2 sm:gap-3">{AVATARS.map((av) => (<button key={av.name} type="button" onClick={() => setAvatar(av.icon)} className={`text-2xl sm:text-3xl p-2 rounded-xl transition-all ${avatar === av.icon ? 'bg-orange-100 ring-2 ring-orange-400 shadow-md scale-110' : 'bg-slate-50 hover:bg-slate-100 hover:scale-105'}`} title={av.name}>{av.icon}</button>))}</div></div>
+                            <div className="flex gap-3"><button type="submit" className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 shadow-md transition-colors flex justify-center items-center gap-2"><Save size={20} /> {t.saveChanges}</button><button type="button" onClick={onClose} className="px-6 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">{t.cancel}</button></div>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // 將 React 應用程式掛載到網頁中
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
 </html>
